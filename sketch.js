@@ -8,13 +8,21 @@ let dragging = false;
 
 let tiles = [];//store tile images
 let rects = [];
+let pages = [];
+let curpage = -1;
 
+let imglist = ['assets/cosa_text2.jpg', 'assets/pines.jpg', 'assets/tiberisland.jpg'];
+let pageimgs = [];
 let testpage;
 
 function preload() {
   //img = loadImage('assets/cosatext_1.jpg');
-  img = loadImage('assets/cosa_text2.jpg');
+  //img = loadImage('assets/cosa_text2.jpg');
   //img = loadImage('assets/cosatext_3sm-1.jpg');
+  for (let i=0;i<imglist.length;i++) {
+    let tempimg = loadImage(imglist[i]);
+    pageimgs.push(tempimg);
+  }
 
  
 }
@@ -23,15 +31,23 @@ function setup() {
   createCanvas(1600, 1400);
   //image(img, 0, 0);
 
-  testpage = new Page(img);
-  testpage.autofit(500, 500);
-  
+  //testpage = new Page(img);
+  //testpage.autofit(500, 500);
+
+  for (let i=0;i<imglist.length;i++) {
+    let tpage = new Page(pageimgs[i]);
+    tpage.autofit(500, 500);
+    pages.push(tpage);
+    //let tempimg = loadImage(imglist[i]);
+    //pageimgs.push(tempimg);
+  }
+  curpage = 0;
 }
 
 function draw() {
-  //background(220);
-  //image(img, 0, 0);
-  testpage.display();
+  background(255);
+  //testpage.display();
+  pages[curpage].display();
   if (dragging) {
     stroke(255, 0, 0);
     noFill();
@@ -46,7 +62,8 @@ function draw() {
 }
 
 function mousePressed() {
-  if (mouseX<img.width && mouseY<img.height) {
+  //if (mouseX<img.width && mouseY<img.height) {
+    if (mouseX<pages[curpage].img.width && mouseY<pages[curpage].img.height) {
     startx=curx = mouseX;
     starty=cury = mouseY;
     dragging = true;
@@ -60,9 +77,15 @@ function mouseDragged() {
 
 function mouseReleased() {
   if (!dragging) return;
+  if (curx==startx || cury==starty) {
+    dragging = false;
+    return;
+  }
   let tempw = typeh*(curx-startx)/(cury-starty);
   //let subimg = img.get(startx, starty, curx-startx, cury-starty);
-  let subimg = testpage.extract(startx, starty, curx-startx, cury-starty);
+  //let subimg = testpage.extract(startx, starty, curx-startx, cury-starty);
+
+  let subimg = pages[curpage].extract(startx, starty, curx-startx, cury-starty);
   tiles.push(new Tile(subimg, typex, typey, tempw, typeh));
   
   rects.push(new Rectangle(startx, starty, curx-startx, cury-starty));
@@ -73,10 +96,15 @@ function mouseReleased() {
 }
 
 function keyPressed() {
-  //console.log(keyCode);
+  console.log(keyCode);
   if (keyCode == 13) {//return
     typex = 1000;
     typey+=typeh;
+  }
+  else if (keyCode>=48 && keyCode<=57) {
+    let which = 9-(57-keyCode);
+    console.log("switch to page "+which);
+    if (pages.length>which) curpage = which;
   }
 }
 
