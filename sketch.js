@@ -6,6 +6,8 @@ let typey = 0;
 let startx, starty, curx, cury=0;
 let dragging = false;
 
+let spacing = 2;
+
 let tiles = [];//store tile images
 let rects = [];
 let pages = [];
@@ -14,6 +16,12 @@ let curpage = -1;
 let imglist = ['assets/cosa_text2.jpg', 'assets/pines.jpg', 'assets/tiberisland.jpg'];
 let pageimgs = [];
 let testpage;
+
+let controlPressed = false;
+
+let lasttile = 0;
+
+let saves = [26];
 
 function preload() {
   //img = loadImage('assets/cosatext_1.jpg');
@@ -42,6 +50,9 @@ function setup() {
     //pageimgs.push(tempimg);
   }
   curpage = 0;
+  for (let i=0;i<26;i++) {
+    saves[i] = 0;
+  }
 }
 
 function draw() {
@@ -86,25 +97,60 @@ function mouseReleased() {
   //let subimg = testpage.extract(startx, starty, curx-startx, cury-starty);
 
   let subimg = pages[curpage].extract(startx, starty, curx-startx, cury-starty);
-  tiles.push(new Tile(subimg, typex, typey, tempw, typeh));
-  
   rects.push(new Rectangle(startx, starty, curx-startx, cury-starty));
-  typex+=tempw;
+  let newtile = new Tile(subimg, typex, typey, tempw, typeh);
+  //tiles.push(new Tile(subimg, typex, typey, tempw, typeh));
+  //typex+=tempw+spacing;
+  typetile(newtile);
   console.log("SNIP");
   dragging = false;
+
+  lasttile = newtile;
   
+}
+
+function typetile(ntile) {
+  tiles.push(ntile);
+  ntile.x = typex;
+  ntile.y = typey;
+  typex+=ntile.w+spacing;
 }
 
 function keyPressed() {
   console.log(keyCode);
   if (keyCode == 13) {//return
     typex = 1000;
-    typey+=typeh;
+    typey+=typeh+spacing;
   }
   else if (keyCode>=48 && keyCode<=57) {
     let which = 9-(57-keyCode);
     console.log("switch to page "+which);
     if (pages.length>which) curpage = which;
+  }
+  else if (keyCode==CONTROL) {
+    controlPressed = true;
+  }
+  else if (keyCode>=65 && keyCode<=90) {
+    let saveindex = keyCode-65;
+    if (controlPressed) {//save tile into array
+      saves[saveindex] = lasttile;
+      console.log("saved "+key);
+    }
+    else {//recall the correct tile, if exists
+      if (lasttile!=0) {
+        if (saves[saveindex]!=0) {
+          console.log("recall saves"+saveindex);
+          typetile(saves[saveindex].copy());
+          //tiles.push(new Tile(saves[saveindex], typex, typey, tempw, typeh));
+        }
+      }
+    }
+  }
+}
+
+function keyReleased() {
+  if (keyCode==CONTROL) {
+    controlPressed = false;
   }
 }
 
@@ -120,6 +166,11 @@ class Tile {
 
   display() {
     image(this.img, this.x, this.y, this.w, this.h);
+  }
+
+  copy() {
+    let newtile = new Tile(this.img, this.x, this.y, this.w, this.h);
+    return (newtile);
   }
 }
 
