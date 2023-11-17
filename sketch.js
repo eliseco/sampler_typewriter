@@ -1,19 +1,22 @@
 
 let img;
 let typeh  = 60;
-let typex = 1000;
-let typey = 0;
+let leftedge = typex = 700;
+let typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
 
-let spacing = 2;
+
+
+let spacing = 0;
 
 let tiles = [];//store tile images
 let rects = [];
 let pages = [];
 let curpage = -1;
 
-let imglist = ['assets/cosa_text2.jpg', 'assets/pines.jpg', 'assets/tiberisland.jpg'];
+let imglist = ['cosa_text2.jpg', 'pines.jpg', 'tiberisland.jpg', 
+'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'DSC00110.jpg', 'DSC00121.jpg'];
 let pageimgs = [];
 let testpage;
 
@@ -22,13 +25,11 @@ let controlPressed = false;
 let lasttile = 0;
 
 let saves = [26];
+let spacetile = 0;
 
 function preload() {
-  //img = loadImage('assets/cosatext_1.jpg');
-  //img = loadImage('assets/cosa_text2.jpg');
-  //img = loadImage('assets/cosatext_3sm-1.jpg');
   for (let i=0;i<imglist.length;i++) {
-    let tempimg = loadImage(imglist[i]);
+    let tempimg = loadImage("assets/"+imglist[i]);
     pageimgs.push(tempimg);
   }
 
@@ -36,15 +37,11 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(1600, 1400);
-  //image(img, 0, 0);
-
-  //testpage = new Page(img);
-  //testpage.autofit(500, 500);
-
+  createCanvas(1600, 1600);
+  
   for (let i=0;i<imglist.length;i++) {
     let tpage = new Page(pageimgs[i]);
-    tpage.autofit(500, 500);
+    tpage.autofit(600, 1000);
     pages.push(tpage);
     //let tempimg = loadImage(imglist[i]);
     //pageimgs.push(tempimg);
@@ -67,9 +64,11 @@ function draw() {
   for (let i=0;i<tiles.length;i++) {
     tiles[i].display();
   }
+  /*
   for (let i=0;i<rects.length;i++) {
     rects[i].display();
   }
+  */
 }
 
 function mousePressed() {
@@ -97,7 +96,8 @@ function mouseReleased() {
   //let subimg = testpage.extract(startx, starty, curx-startx, cury-starty);
 
   let subimg = pages[curpage].extract(startx, starty, curx-startx, cury-starty);
-  rects.push(new Rectangle(startx, starty, curx-startx, cury-starty));
+  //rects.push(new Rectangle(startx, starty, curx-startx, cury-starty));
+  pages[curpage].rects.push(new Rectangle(startx, starty, curx-startx, cury-starty));
   let newtile = new Tile(subimg, typex, typey, tempw, typeh);
   //tiles.push(new Tile(subimg, typex, typey, tempw, typeh));
   //typex+=tempw+spacing;
@@ -119,7 +119,7 @@ function typetile(ntile) {
 function keyPressed() {
   console.log(keyCode);
   if (keyCode == 13) {//return
-    typex = 1000;
+    typex = leftedge;
     typey+=typeh+spacing;
   }
   else if (keyCode>=48 && keyCode<=57) {
@@ -127,7 +127,7 @@ function keyPressed() {
     console.log("switch to page "+which);
     if (pages.length>which) curpage = which;
   }
-  else if (keyCode==CONTROL) {
+  else if (keyCode==ALT) {
     controlPressed = true;
   }
   else if (keyCode>=65 && keyCode<=90) {
@@ -146,10 +146,24 @@ function keyPressed() {
       }
     }
   }
+  else if (keyCode==32) {
+    if (controlPressed) {
+      spacetile = lasttile;
+      console.log("saved spacebar");
+    }
+    else {//recall the correct tile, if exists
+      if (lasttile!=0) {
+        if (spacetile!=0) {
+          console.log("recall space");
+          typetile(spacetile.copy());
+        }
+      }
+    }
+  }
 }
 
 function keyReleased() {
-  if (keyCode==CONTROL) {
+  if (keyCode==ALT) {
     controlPressed = false;
   }
 }
@@ -231,6 +245,9 @@ class Page {//a source image, scaled and with selection areas saved
 
   display() {
     image(this.img, 0, 0, this.w, this.h);
+    for (let i=0;i<this.rects.length;i++) {
+      this.rects[i].display();
+    }
   }
 
 }
