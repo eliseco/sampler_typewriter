@@ -2,7 +2,7 @@
 let img;
 let typeh  = 60;
 let leftedge = typex = 700;
-let typey = 20;
+let topedge = typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
 
@@ -21,6 +21,7 @@ let pageimgs = [];
 let testpage;
 
 let controlPressed = false;
+let altPressed = false;
 
 let lasttile = 0;
 
@@ -41,10 +42,8 @@ function setup() {
   
   for (let i=0;i<imglist.length;i++) {
     let tpage = new Page(pageimgs[i]);
-    tpage.autofit(600, 1000);
+    tpage.autofit(685, 1000);
     pages.push(tpage);
-    //let tempimg = loadImage(imglist[i]);
-    //pageimgs.push(tempimg);
   }
   curpage = 0;
   for (let i=0;i<26;i++) {
@@ -54,7 +53,6 @@ function setup() {
 
 function draw() {
   background(255);
-  //testpage.display();
   pages[curpage].display();
   if (dragging) {
     stroke(255, 0, 0);
@@ -64,11 +62,6 @@ function draw() {
   for (let i=0;i<tiles.length;i++) {
     tiles[i].display();
   }
-  /*
-  for (let i=0;i<rects.length;i++) {
-    rects[i].display();
-  }
-  */
 }
 
 function mousePressed() {
@@ -113,6 +106,7 @@ function typetile(ntile) {
   tiles.push(ntile);
   ntile.x = typex;
   ntile.y = typey;
+  lasttile = ntile;
   typex+=ntile.w+spacing;
 }
 
@@ -128,11 +122,14 @@ function keyPressed() {
     if (pages.length>which) curpage = which;
   }
   else if (keyCode==ALT) {
+    altPressed = true;
+  }
+  else if (keyCode==CONTROL) {
     controlPressed = true;
   }
   else if (keyCode>=65 && keyCode<=90) {
     let saveindex = keyCode-65;
-    if (controlPressed) {//save tile into array
+    if (altPressed) {//save tile into array
       saves[saveindex] = lasttile;
       console.log("saved "+key);
     }
@@ -160,12 +157,34 @@ function keyPressed() {
       }
     }
   }
+  else if (keyCode==192) {//tilde
+    if (controlPressed) cleartiles();
+  }
+  else if (keyCode==37 || keyCode==39) {//left and right arrows
+    if (lasttile!=0) lasttile.fliph = !lasttile.fliph;
+  }
+  else if (keyCode==38 || keyCode==40) {//up and down arrows
+    if (lasttile!=0) lasttile.flipv = !lasttile.flipv;
+  }
+  else if (keyCode==8) {
+    let ttile = tiles.pop();
+    typex-=ttile.w;
+  }
 }
 
 function keyReleased() {
   if (keyCode==ALT) {
+    altPressed = false;
+  }
+  if (keyCode==CONTROL) {
     controlPressed = false;
   }
+}
+
+function cleartiles() {
+  typex = leftedge;
+  typey = topedge;
+  tiles = [];
 }
 
 
@@ -176,14 +195,25 @@ class Tile {
     this.y = y;
     this.w = w;
     this.h = h;
+    this.fliph = false;
+    this.flipv = false;
   }
 
   display() {
-    image(this.img, this.x, this.y, this.w, this.h);
+    //image(this.img, this.x, this.y, this.w, this.h);
+    push();
+    translate(this.x, this.y);
+    translate(0.5*this.w, 0.5*this.h);
+    if (this.fliph) scale(-1, 1);
+    if (this.flipv) scale(1, -1);
+    image(this.img, -0.5*this.w, -0.5*this.h, this.w, this.h);
+    pop();
   }
 
   copy() {
     let newtile = new Tile(this.img, this.x, this.y, this.w, this.h);
+    newtile.fliph = this.fliph;
+    newtile.flipv = this.flipv;
     return (newtile);
   }
 }
@@ -216,25 +246,12 @@ class Page {//a source image, scaled and with selection areas saved
   }
 
   autofit(w, h) {//scale the image to fit rect. ASSUME IMAGE IS ALWAYS >= THAN DRAWN AREA
-    let aspect = this.img.width/this.img.height;
-    let targetaspect = w/h;
-    let fitwidth = true;
-    //let targetw = this.w;
-    //let targeth = this.h;//gonna overwrite these anyway
-    console.log("aspect: "+aspect+", targetaspect "+targetaspect);
-    if (aspect<=1) {
-      if (targetaspect<1) fitwidth = false;
-    }
-    if (fitwidth) {
-      this.scale = w/this.img.width;
-    }
-    else {
-      this.scale = h/this.img.height;
-    }
+    
+    this.scale = min(w/this.img.width, h/this.img.height);
     this.w = this.scale*this.img.width;
     this.h = this.scale*this.img.height;
 
-    console.log("autofit: "+fitwidth+" to "+this.w+" "+this.h+", scale "+this.scale);
+    //console.log("autofit: "+fitwidth+" to "+this.w+" "+this.h+", scale "+this.scale);
 
   }
 
