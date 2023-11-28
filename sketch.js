@@ -1,6 +1,6 @@
 
 let img;
-let typeh  = 60;
+let typeh  = 100;
 let leftedge = typex = 700;
 let topedge = typey = 20;
 let startx, starty, curx, cury=0;
@@ -16,7 +16,7 @@ let pages = [];
 let curpage = -1;
 
 let imglist = ['cosa_text2.jpg', 'pines.jpg', 'tiberisland.jpg', 
-'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'DSC00110.jpg', 'DSC00121.jpg'];
+'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'viappia1.jpg', 'DSC00121.jpg', 'domusaurea1.jpg', 'domusaurea2.jpg', 'pantheon1.jpg'];
 let pageimgs = [];
 let testpage;
 
@@ -121,6 +121,10 @@ function keyPressed() {
     console.log("switch to page "+which);
     if (pages.length>which) curpage = which;
   }
+  else if (keyCode==187) {//equal sign / plus key
+    curpage++;
+    if (curpage>=pages.length) curpage = 0;
+  } 
   else if (keyCode==ALT) {
     altPressed = true;
   }
