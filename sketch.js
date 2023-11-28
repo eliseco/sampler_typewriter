@@ -1,7 +1,8 @@
 
 let img;
 let typeh  = 100;
-let leftedge = typex = 700;
+let pagew = 500;
+let leftedge = typex = pagew+15;
 let topedge = typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
@@ -42,7 +43,7 @@ function setup() {
   
   for (let i=0;i<imglist.length;i++) {
     let tpage = new Page(pageimgs[i]);
-    tpage.autofit(685, 1000);
+    tpage.autofit(pagew, 1000);
     pages.push(tpage);
   }
   curpage = 0;
