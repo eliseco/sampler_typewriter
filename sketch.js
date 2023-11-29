@@ -16,6 +16,7 @@ let rects = [];
 let pages = [];
 let curpage = -1;
 
+let customlist = ['miranda/pinenegative.jpeg', 'miranda/pinepositive.jpeg'];//miranda
 let imglist = ['cosa_text2.jpg', 'pines.jpg', 'tiberisland.jpg', 
 'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'viappia1.jpg', 'DSC00121.jpg', 'domusaurea1.jpg', 'domusaurea2.jpg', 'pantheon1.jpg'];
 let pageimgs = [];
@@ -23,6 +24,7 @@ let testpage;
 
 let controlPressed = false;
 let altPressed = false;
+let shiftPressed = false;
 
 let lasttile = 0;
 
@@ -30,8 +32,9 @@ let saves = [26];
 let spacetile = 0;
 
 function preload() {
-  for (let i=0;i<imglist.length;i++) {
-    let tempimg = loadImage("assets/"+imglist[i]);
+  let myimglist = customlist.concat(imglist);
+  for (let i=0;i<myimglist.length;i++) {
+    let tempimg = loadImage("assets/"+myimglist[i]);
     pageimgs.push(tempimg);
   }
 
@@ -63,6 +66,8 @@ function draw() {
   for (let i=0;i<tiles.length;i++) {
     tiles[i].display();
   }
+  stroke(255, 0, 0);
+  line(typex, typey, typex, typey+typeh);
 }
 
 function mousePressed() {
@@ -126,15 +131,15 @@ function keyPressed() {
     curpage++;
     if (curpage>=pages.length) curpage = 0;
   } 
-  else if (keyCode==ALT) {
-    altPressed = true;
+  else if (keyCode==SHIFT) {//(keyCode==ALT) {
+    shiftPressed = true;
   }
   else if (keyCode==CONTROL) {
     controlPressed = true;
   }
   else if (keyCode>=65 && keyCode<=90) {
     let saveindex = keyCode-65;
-    if (altPressed) {//save tile into array
+    if (shiftPressed) {//save tile into array
       saves[saveindex] = lasttile;
       console.log("saved "+key);
     }
@@ -149,7 +154,7 @@ function keyPressed() {
     }
   }
   else if (keyCode==32) {
-    if (controlPressed) {
+    if (shiftPressed) {//controlPressed
       spacetile = lasttile;
       console.log("saved spacebar");
     }
@@ -163,7 +168,7 @@ function keyPressed() {
     }
   }
   else if (keyCode==192) {//tilde
-    if (controlPressed) cleartiles();
+    if (shiftPressed) cleartiles();
   }
   else if (keyCode==37 || keyCode==39) {//left and right arrows
     if (lasttile!=0) lasttile.fliph = !lasttile.fliph;
@@ -178,8 +183,9 @@ function keyPressed() {
 }
 
 function keyReleased() {
-  if (keyCode==ALT) {
-    altPressed = false;
+  if (keyCode==SHIFT) {
+    //altPressed = false;
+    shiftPressed = false;
   }
   if (keyCode==CONTROL) {
     controlPressed = false;
