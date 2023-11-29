@@ -7,7 +7,8 @@ let topedge = typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
 
-
+let input;
+let images = [];
 
 let spacing = 0;
 
@@ -16,7 +17,8 @@ let rects = [];
 let pages = [];
 let curpage = -1;
 
-let customlist = ['miranda/pinenegative.jpeg', 'miranda/pinepositive.jpeg'];//miranda
+//let customlist = ['miranda/pinenegative.jpeg', 'miranda/pinepositive.jpeg'];//miranda
+let customlist = [];
 let imglist = ['cosa_text2.jpg', 'pines.jpg', 'tiberisland.jpg', 
 'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'viappia1.jpg', 'DSC00121.jpg', 'domusaurea1.jpg', 'domusaurea2.jpg', 'pantheon1.jpg'];
 let pageimgs = [];
@@ -41,8 +43,43 @@ function preload() {
  
 }
 
+// Create an image if the file is an image,
+// then add it to the images array.
+function handleImage(file) {
+  if (file.type === 'image') {
+    /*
+    let tempimg = createImg(file.data, '');
+    tempimg.hide();
+    images.push(tempimg);
+    */
+   let tempimg = loadImage(file.data, success, failure);
+
+   /*
+    let tpage = new Page(tempimg);
+    tpage.autofit(pagew, 1000);
+    //pages.push(tpage);
+    pages.unshift(tpage);
+    */
+   //let tempimg = loadImage("")
+  }
+}
+
+function success(tempimg) {
+  let tpage = new Page(tempimg);
+  tpage.autofit(pagew, 1000);
+  //pages.push(tpage);
+  pages.unshift(tpage);
+}
+
+function failure(event) {
+  console.error('Oops!', event);
+}
+
 function setup() {
   createCanvas(1600, 1600);
+
+  input = createFileInput(handleImage, true);
+  input.position(0, 1050);
   
   for (let i=0;i<imglist.length;i++) {
     let tpage = new Page(pageimgs[i]);
