@@ -8,6 +8,9 @@ let topedge = typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
 
+let cursordrag = false;
+let startcursory;
+
 let input;
 let images = [];
 
@@ -33,6 +36,8 @@ let lasttile = 0;
 
 let saves = [26];
 let spacetile = 0;
+
+let handlew = 10;
 
 function preload() {
   let myimglist = customlist.concat(imglist);
@@ -106,6 +111,24 @@ function draw() {
   }
   stroke(255, 0, 0);
   line(typex, typey, typex, typey+typeh);
+  if (typex == leftedge) {
+    drawcursorhandle();
+  }
+}
+
+function drawcursorhandle() {
+  stroke(255, 0, 0);
+  if (checkcursorhandle()) fill (255, 0, 0);
+  else noFill();
+  rect (typex-handlew, typeh+typey, handlew*2, handlew);
+  
+}
+
+function checkcursorhandle() {
+  //console.log("mouseX "+mouseX);
+  if (typex!=leftedge) return false;
+  if (mouseX>typex-handlew && mouseX<typex+handlew && mouseY>typeh+typey && mouseY<typeh+typey+handlew) return true;
+  else return false;
 }
 
 function mousePressed() {
@@ -114,6 +137,10 @@ function mousePressed() {
     startx=curx = mouseX;
     starty=cury = mouseY;
     dragging = true;
+  }
+  else if (checkcursorhandle()) {
+    cursordrag = true;
+    startcursory = mouseY;
   }
 }
 
@@ -124,9 +151,18 @@ function mouseDragged() {
   cury = mouseY;
   if (cury > pages[curpage].h) cury = pages[curpage].h;
   if (cury < 0) cury = 0;
+
+  if (cursordrag) {
+    dy = mouseY-startcursory;
+    typeh+=dy;
+    if (typeh<30) typeh = 30;
+    if (typeh>200) typeh = 200;
+    startcursory = mouseY;
+  }
 }
 
 function mouseReleased() {
+  cursordrag = false;
   if (!dragging) return;
   if (curx==startx || cury==starty) {
     dragging = false;
@@ -160,6 +196,11 @@ function mouseReleased() {
 }
 
 function typetile(ntile) {
+  if (ntile.h != typeh) {//resize tile
+    let tempw = typeh*ntile.w/ntile.h;
+    ntile.w = tempw;
+    ntile.h = typeh;
+  }
   tiles.push(ntile);
   ntile.x = typex;
   ntile.y = typey;
@@ -171,7 +212,7 @@ function keyPressed() {
   console.log(keyCode);
   if (keyCode == 13) {//return
     typex = leftedge;
-    typey+=typeh+spacing;
+    typey+=typeh+spacing-1;
   }
   else if (keyCode>=48 && keyCode<=57) {
     let which = 9-(57-keyCode);
@@ -227,13 +268,14 @@ function keyPressed() {
   else if (keyCode==38 || keyCode==40) {//up and down arrows
     if (lasttile!=0) lasttile.flipv = !lasttile.flipv;
   }
-  else if (keyCode==8) {
+  else if (keyCode==8) {//DELETE
     let ttile = tiles.pop();
     //typex-=ttile.w;
     if (tiles.length>=1) {
     let prevtile = tiles[tiles.length-1];
     typex = prevtile.x+prevtile.w;
     typey = prevtile.y;
+    typeh = prevtile.h;
     }
     else {
       typex = leftedge;
