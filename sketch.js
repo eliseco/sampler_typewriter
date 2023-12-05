@@ -21,7 +21,7 @@ let curpage = -1;
 //let customlist = ['miranda/pinenegative.jpeg', 'miranda/pinepositive.jpeg'];//miranda
 let customlist = [];
 let imglist = ['cosa_text2.jpg', 'pines.jpg', 'tiberisland.jpg', 
-'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'viappia1.jpg', 'DSC00121.jpg', 'domusaurea1.jpg', 'domusaurea2.jpg', 'pantheon1.jpg'];
+'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'viappia1.jpg', 'DSC00121.JPG', 'domusaurea1.jpg', 'domusaurea2.jpg', 'pantheon1.jpg'];
 let pageimgs = [];
 let testpage;
 
@@ -229,7 +229,17 @@ function keyPressed() {
   }
   else if (keyCode==8) {
     let ttile = tiles.pop();
-    typex-=ttile.w;
+    //typex-=ttile.w;
+    if (tiles.length>=1) {
+    let prevtile = tiles[tiles.length-1];
+    typex = prevtile.x+prevtile.w;
+    typey = prevtile.y;
+    }
+    else {
+      typex = leftedge;
+      typey = topedge;
+    }
+  
   }
 }
 
