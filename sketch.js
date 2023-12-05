@@ -2,6 +2,7 @@
 let img;
 let typeh  = 100;
 let pagew = 500;
+let pageh = 1000;
 let leftedge = typex = pagew+15;
 let topedge = typey = 20;
 let startx, starty, curx, cury=0;
@@ -66,7 +67,7 @@ function handleImage(file) {
 
 function success(tempimg) {
   let tpage = new Page(tempimg);
-  tpage.autofit(pagew, 1000);
+  tpage.autofit(pagew, pageh);
   //pages.push(tpage);
   pages.unshift(tpage);
 }
@@ -109,7 +110,7 @@ function draw() {
 
 function mousePressed() {
   //if (mouseX<img.width && mouseY<img.height) {
-    if (mouseX<pages[curpage].img.width && mouseY<pages[curpage].img.height) {
+    if (mouseX<pages[curpage].w && mouseY<pages[curpage].h) {
     startx=curx = mouseX;
     starty=cury = mouseY;
     dragging = true;
@@ -118,7 +119,11 @@ function mousePressed() {
 
 function mouseDragged() {
   curx = mouseX;
+  if (curx > pages[curpage].w) curx = pages[curpage].w;
+  if (curx < 0) curx = 0;
   cury = mouseY;
+  if (cury > pages[curpage].h) cury = pages[curpage].h;
+  if (cury < 0) cury = 0;
 }
 
 function mouseReleased() {
@@ -127,13 +132,22 @@ function mouseReleased() {
     dragging = false;
     return;
   }
-  let tempw = typeh*(curx-startx)/(cury-starty);
+  let newx = min(curx, startx);
+  let newy = min(cury, starty);
+  let neww = abs(curx-startx);
+  let newh = abs(cury-starty);
+  //let tempw = typeh*(curx-startx)/(cury-starty);
+  let tempw = typeh*neww/newh;
   //let subimg = img.get(startx, starty, curx-startx, cury-starty);
   //let subimg = testpage.extract(startx, starty, curx-startx, cury-starty);
 
-  let subimg = pages[curpage].extract(startx, starty, curx-startx, cury-starty);
-  //rects.push(new Rectangle(startx, starty, curx-startx, cury-starty));
-  pages[curpage].rects.push(new Rectangle(startx, starty, curx-startx, cury-starty));
+  //let subimg = pages[curpage].extract(startx, starty, curx-startx, cury-starty);
+  let subimg = pages[curpage].extract(newx, newy, neww, newh);
+
+  //pages[curpage].rects.push(new Rectangle(startx, starty, curx-startx, cury-starty));
+  pages[curpage].rects.push(new Rectangle(newx, newy, neww, newh));
+
+
   let newtile = new Tile(subimg, typex, typey, tempw, typeh);
   //tiles.push(new Tile(subimg, typex, typey, tempw, typeh));
   //typex+=tempw+spacing;
