@@ -305,20 +305,61 @@ function keyPressed() {
     if (lasttile!=0) lasttile.flipv = !lasttile.flipv;
   }
   else if (keyCode==8) {//DELETE
+    
+    /*
     let ttile = tiles.pop();
     //typex-=ttile.w;
     if (tiles.length>=1) {
-    let prevtile = tiles[tiles.length-1];
-    typex = prevtile.x+prevtile.w;
-    typey = prevtile.y;
-    typeh = prevtile.h;
+      let prevtile = tiles[tiles.length-1];
+      typex = prevtile.x+prevtile.w;
+      typey = prevtile.y;
+      typeh = prevtile.h;
     }
     else {
       typex = leftedge;
       typey = topedge;
     }
+    */
+   let ttile = lines[curline].pop();
+   if (lines[curline].length>=1) {
+      let prevtile = lines[curline][lines[curline].length-1];
+      typex = prevtile.x+prevtile.w+spacing;
+      typey = prevtile.y;
+      typeh = prevtile.h;
+      //linewidths[curline]-=ttile.width+spacing;
+      calculateLineWidth();
+   }
+   else {//current line length is 0, so jump back to end of last tile
+    while (curline>0 && lines[curline].length==0) {//delete any extra empty lines
+      lines.pop();
+      linewidths.pop();
+      curline--;
+    }
+    if (lines[curline].length>=1) {
+      let prevtile = lines[curline][lines[curline].length-1];
+      typex = prevtile.x+prevtile.w+spacing;
+      typey = prevtile.y;
+      typeh = prevtile.h;
+
+      calculateLineWidth();
+    }
+    else {//if we get here, curline = 0 and length = 0 ?
+      typex = leftedge;
+      typey = topedge;
+    }
+   }
+    
   
   }
+}
+
+function calculateLineWidth() {
+  let w = 0;
+  for (let i=0;i<lines[curline].length;i++) {
+    w+=lines[curline][i].w+spacing;
+  }
+  linewidths[curline] = w;
+  console.log("linewidth: "+w+" for curline:"+curline);
 }
 
 function keyReleased() {
@@ -335,6 +376,12 @@ function cleartiles() {
   typex = leftedge;
   typey = topedge;
   tiles = [];
+
+  lines = [];
+  lines.push(new Array());
+  linewidths = [];
+  linewidths.push(0);
+  curline = 0;
 }
 
 
