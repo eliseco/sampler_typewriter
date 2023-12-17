@@ -11,6 +11,10 @@ let dragging = false;
 //composition area
 let panelw = 1100;
 let panelh = 1600;//make sure this is bigger than pageh
+let centerx; 
+let lines = [];//this will be array of arrays
+let linewidths = [];//keep track of line widths, for centering
+let curline = 0;
 
 let cursordrag = false;
 let startcursory;
@@ -86,6 +90,11 @@ function failure(event) {
 }
 
 function setup() {
+  centerx = int(panelw/2);
+  lines.push(new Array());
+  linewidths.push(0);
+  curline = 0;
+
   createCanvas(pagew+panelw, panelh);
 
   input = createFileInput(handleImage, true);
@@ -110,14 +119,27 @@ function draw() {
     noFill();
     rect(startx, starty,curx-startx, cury-starty);
   }
+  /*
   for (let i=0;i<tiles.length;i++) {
     tiles[i].display();
   }
+  */
+ for (let i=0;i<lines.length;i++) {
+  push();
+  translate((panelw-linewidths[i])/2, 0);
+  for (let j=0;j<lines[i].length;j++) {
+    lines[i][j].display(); 
+  }
+  pop();
+ }
   stroke(255, 0, 0);
+  push();
+  translate((panelw-linewidths[curline])/2, 0);
   line(typex, typey, typex, typey+typeh);
   if (typex == leftedge) {
     drawcursorhandle();
   }
+  pop();
 }
 
 function drawcursorhandle() {
@@ -206,10 +228,12 @@ function typetile(ntile) {
     ntile.h = typeh;
   }
   tiles.push(ntile);
+  lines[curline].push(ntile);
   ntile.x = typex;
   ntile.y = typey;
   lasttile = ntile;
   typex+=ntile.w+spacing;
+  linewidths[curline]+=ntile.w+spacing;
 }
 
 function keyPressed() {
@@ -217,6 +241,10 @@ function keyPressed() {
   if (keyCode == 13) {//return
     typex = leftedge;
     typey+=typeh+spacing-1;
+    //make new line array
+    lines.push(new Array());
+    linewidths.push(0);
+    curline++;
   }
   else if (keyCode>=48 && keyCode<=57) {
     let which = 9-(57-keyCode);
