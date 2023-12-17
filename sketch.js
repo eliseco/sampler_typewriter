@@ -8,6 +8,10 @@ let topedge = typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
 
+//composition area
+let panelw = 1100;
+let panelh = 1600;//make sure this is bigger than pageh
+
 let cursordrag = false;
 let startcursory;
 
@@ -82,14 +86,14 @@ function failure(event) {
 }
 
 function setup() {
-  createCanvas(1600, 1600);
+  createCanvas(pagew+panelw, panelh);
 
   input = createFileInput(handleImage, true);
-  input.position(0, 1050);
+  input.position(0, pageh+50);
   
   for (let i=0;i<imglist.length;i++) {
     let tpage = new Page(pageimgs[i]);
-    tpage.autofit(pagew, 1000);
+    tpage.autofit(pagew, pageh);
     pages.push(tpage);
   }
   curpage = 0;
