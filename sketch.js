@@ -222,6 +222,10 @@ function keyPressed() {
   else if (keyCode==187) {//equal sign / plus key
     curpage++;
     if (curpage>=pages.length) curpage = 0;
+  }
+  else if (keyCode==189) {//hyphen / minus key
+    curpage--;
+    if (curpage<0) curpage = pages.length-1;
   } 
   else if (keyCode==SHIFT) {//(keyCode==ALT) {
     shiftPressed = true;
