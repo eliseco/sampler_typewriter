@@ -21,6 +21,7 @@ let startcursory;
 
 let input;//file upload input
 let checkbox;//checkbox for centered mode
+let slider;//slider for tile spacing - only available on a clear canvas
 
 let images = [];
 
@@ -105,6 +106,10 @@ function setup() {
   checkbox = createCheckbox(' centered');
   checkbox.position(0, pageh+100);
 
+  slider = createSlider(0, 10, 0, 1);
+  slider.position(0, pageh+150);
+  slider.size(80);
+
   describe('An interactive tool that displays an image on the left, and blank canvas on the right. Selecting portions of the image assembles them as tiles on the right.');
   
   for (let i=0;i<imglist.length;i++) {
@@ -121,6 +126,17 @@ function setup() {
 function draw() {
   background(255);
   pages[curpage].display();
+
+  if (curline==0 && lines[curline].length==0) {//we are on a clear canvas
+    slider.show();  
+    spacing = slider.value();
+    textSize(14);
+    noStroke();
+    fill(0, 0, 0);
+    text('spacing: '+spacing, 100, pageh+17);
+  }
+  else slider.hide();
+
   if (dragging) {
     stroke(255, 0, 0);
     noFill();
