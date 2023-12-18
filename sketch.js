@@ -19,10 +19,12 @@ let curline = 0;
 let cursordrag = false;
 let startcursory;
 
-let input;
+let input;//file upload input
+let checkbox;//checkbox for centered mode
+
 let images = [];
 
-let spacing = 0;
+let spacing = 3;
 
 let tiles = [];//store tile images
 let rects = [];
@@ -99,6 +101,11 @@ function setup() {
 
   input = createFileInput(handleImage, true);
   input.position(0, pageh+50);
+
+  checkbox = createCheckbox(' centered');
+  checkbox.position(0, pageh+100);
+
+  describe('An interactive tool that displays an image on the left, and blank canvas on the right. Selecting portions of the image assembles them as tiles on the right.');
   
   for (let i=0;i<imglist.length;i++) {
     let tpage = new Page(pageimgs[i]);
@@ -126,7 +133,7 @@ function draw() {
   */
  for (let i=0;i<lines.length;i++) {
   push();
-  translate((panelw-linewidths[i])/2, 0);
+  if (checkbox.checked()) translate((panelw-linewidths[i])/2, 0);
   for (let j=0;j<lines[i].length;j++) {
     lines[i][j].display(); 
   }
@@ -134,7 +141,7 @@ function draw() {
  }
   stroke(255, 0, 0);
   push();
-  translate((panelw-linewidths[curline])/2, 0);
+  if (checkbox.checked()) translate((panelw-linewidths[curline])/2, 0);
   line(typex, typey, typex, typey+typeh);
   if (typex == leftedge) {
     drawcursorhandle();
@@ -153,7 +160,9 @@ function drawcursorhandle() {
 function checkcursorhandle() {
   //console.log("mouseX "+mouseX);
   if (typex!=leftedge) return false;
-  if (mouseX>typex-handlew && mouseX<typex+handlew && mouseY>typeh+typey && mouseY<typeh+typey+handlew) return true;
+  let offset = 0;
+  if (checkbox.checked()) offset = (panelw-linewidths[curline])/2;
+  if (mouseX>offset+typex-handlew && mouseX<offset+typex+handlew && mouseY>typeh+typey && mouseY<typeh+typey+handlew) return true;
   else return false;
 }
 
