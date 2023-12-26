@@ -155,7 +155,9 @@ function draw() {
   textSize(14);
   noStroke();
   fill(0, 0, 0);
-  text('KEY BANK: '+curbank, 10, pageh+37);//display bank number
+  text('type height: '+typeh, 10, pageh+37);//display bank number
+  text('KEY BANK: '+curbank, 10, pageh+57);//display bank number
+
 
   /*
   for (let i=0;i<tiles.length;i++) {
