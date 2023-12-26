@@ -8,6 +8,9 @@ let topedge = typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
 
+let mintypeh = 30;
+let maxtypeh = 500;
+
 //composition area
 let panelw = 1100;
 let panelh = 1600;//make sure this is bigger than pageh
@@ -17,6 +20,7 @@ let linewidths = [];//keep track of line widths, for centering
 let curline = 0;
 
 let cursordrag = false;
+let canvasdrag = false;//are we dragging in the canvas? otherwise in source image
 let startcursory;
 
 let input;//file upload input
@@ -146,11 +150,7 @@ function draw() {
   }
   else slider.hide();
 
-  if (dragging) {
-    stroke(255, 0, 0);
-    noFill();
-    rect(startx, starty,curx-startx, cury-starty);
-  }
+ 
 
   textSize(14);
   noStroke();
@@ -178,6 +178,14 @@ function draw() {
     drawcursorhandle();
   }
   pop();
+
+
+  if (dragging) {
+    if (canvasdrag) stroke(0, 255, 255);
+    else stroke(255, 0, 0);
+    noFill();
+    rect(startx, starty,curx-startx, cury-starty);
+  }
 }
 
 function drawcursorhandle() {
@@ -199,30 +207,48 @@ function checkcursorhandle() {
 
 function mousePressed() {
   //if (mouseX<img.width && mouseY<img.height) {
-    if (mouseX<pages[curpage].w && mouseY<pages[curpage].h) {
+  if (mouseX<pages[curpage].w && mouseY<pages[curpage].h) {
     startx=curx = mouseX;
     starty=cury = mouseY;
     dragging = true;
+    canvasdrag = false;
   }
   else if (checkcursorhandle()) {
     cursordrag = true;
     startcursory = mouseY;
   }
+  else {//dragging on right side
+    startx=curx = mouseX;
+    starty=cury = mouseY;
+    dragging = true;
+    canvasdrag = true;
+  }
 }
 
 function mouseDragged() {
   curx = mouseX;
-  if (curx > pages[curpage].w) curx = pages[curpage].w;
-  if (curx < 0) curx = 0;
   cury = mouseY;
-  if (cury > pages[curpage].h) cury = pages[curpage].h;
-  if (cury < 0) cury = 0;
+
+  if (canvasdrag) {
+    if (curx < pagew) curx = pagew;
+    //if (curx > width) curx = width;
+
+    //if (cury > height) cury = height;
+    if (cury < 0) cury = 0;
+  }
+  else {
+    if (curx > pages[curpage].w) curx = pages[curpage].w;
+    if (curx < 0) curx = 0;
+    
+    if (cury > pages[curpage].h) cury = pages[curpage].h;
+    if (cury < 0) cury = 0;
+  }
 
   if (cursordrag) {
     dy = mouseY-startcursory;
     typeh+=dy;
-    if (typeh<30) typeh = 30;
-    if (typeh>200) typeh = 200;
+    if (typeh<mintypeh) typeh = mintypeh;
+    if (typeh>maxtypeh) typeh = maxtypeh;
     startcursory = mouseY;
   }
 }
@@ -243,11 +269,14 @@ function mouseReleased() {
   //let subimg = img.get(startx, starty, curx-startx, cury-starty);
   //let subimg = testpage.extract(startx, starty, curx-startx, cury-starty);
 
-  //let subimg = pages[curpage].extract(startx, starty, curx-startx, cury-starty);
-  let subimg = pages[curpage].extract(newx, newy, neww, newh);
-
-  //pages[curpage].rects.push(new Rectangle(startx, starty, curx-startx, cury-starty));
-  pages[curpage].rects.push(new Rectangle(newx, newy, neww, newh));
+  let subimg;
+  if (canvasdrag) {//grabbing from self-canvas!
+    subimg = get(newx+1, newy+1, neww-2, newh-2);
+  }
+  else {//grabbing from source image
+    subimg = pages[curpage].extract(newx, newy, neww, newh);
+    pages[curpage].rects.push(new Rectangle(newx, newy, neww, newh));
+  }
 
 
   let newtile = new Tile(subimg, typex, typey, tempw, typeh);
