@@ -45,7 +45,10 @@ let shiftPressed = false;
 
 let lasttile = 0;
 
-let saves = [26];
+
+let curbank = 0;//for having multiple memory banks for keyboard mappings 
+let numbanks = 3;
+let saves = [];
 let spacetile = 0;
 
 let handlew = 10;
@@ -93,6 +96,7 @@ function failure(event) {
 }
 
 function setup() {
+  console.log('SAVES: '+saves);
   centerx = int(panelw/2);
   lines.push(new Array());
   linewidths.push(0);
@@ -118,8 +122,11 @@ function setup() {
     pages.push(tpage);
   }
   curpage = 0;
-  for (let i=0;i<26;i++) {
-    saves[i] = 0;
+  for (let j=0;j<numbanks;j++) {
+    saves[j] = new Array();
+    for (let i=0;i<26;i++) {
+      saves[j][i] = 0;
+    }
   }
 }
 
@@ -133,7 +140,9 @@ function draw() {
     textSize(14);
     noStroke();
     fill(0, 0, 0);
-    text('spacing: '+spacing, 100, pageh+17);
+    //
+    text('spacing: '+spacing, 10, pageh+17);
+    
   }
   else slider.hide();
 
@@ -142,6 +151,12 @@ function draw() {
     noFill();
     rect(startx, starty,curx-startx, cury-starty);
   }
+
+  textSize(14);
+  noStroke();
+  fill(0, 0, 0);
+  text('KEY BANK: '+curbank, 10, pageh+37);//display bank number
+
   /*
   for (let i=0;i<tiles.length;i++) {
     tiles[i].display();
@@ -293,18 +308,25 @@ function keyPressed() {
   else if (keyCode>=65 && keyCode<=90) {
     let saveindex = keyCode-65;
     if (shiftPressed) {//save tile into array
-      saves[saveindex] = lasttile;
+      saves[curbank][saveindex] = lasttile;
       console.log("saved "+key);
     }
     else {//recall the correct tile, if exists
       if (lasttile!=0) {
-        if (saves[saveindex]!=0) {
+        if (saves[curbank][saveindex]!=0) {
           console.log("recall saves"+saveindex);
-          typetile(saves[saveindex].copy());
-          //tiles.push(new Tile(saves[saveindex], typex, typey, tempw, typeh));
+          typetile(saves[curbank][saveindex].copy());
         }
       }
     }
+  }
+  else if (shiftPressed && keyCode==219) {//'['
+    curbank--;
+    if (curbank<0) curbank = numbanks-1;
+  }
+  else if (shiftPressed && keyCode==221) {//']'
+    curbank++;
+    if (curbank>=numbanks) curbank = 0;
   }
   else if (keyCode==32) {
     if (shiftPressed) {//controlPressed
