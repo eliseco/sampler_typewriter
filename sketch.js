@@ -506,8 +506,13 @@ class Rectangle {
   display() {
     noFill();
     stroke(255, 0, 0);
+    /*
     for (let i=this.x;i<this.x+this.w;i+=3){
       line(i, this.y, i, this.y+this.h);
+    }
+    */
+    for (let i=this.x;i<this.x+this.w;i++){
+      if (i%3==0) line(i, this.y, i, this.y+this.h);
     }
   }
 }
