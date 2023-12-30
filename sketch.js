@@ -3,10 +3,14 @@ let img;
 let typeh  = 100;
 let pagew = 500;
 let pageh = 1000;
-let leftedge = typex = pagew+15;
+let leftedge = pagew+15;
+let typex = 0;
 let topedge = typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
+
+let renderscale = 4;//render canvas is 4x display dimensions
+let renderg;
 
 let mintypeh = 30;
 let maxtypeh = 500;
@@ -97,7 +101,8 @@ function setup() {
   linewidths.push(0);
   curline = 0;
 
-  createCanvas(pagew+panelw, panelh);
+  createCanvas(pagew+panelw+15, panelh);
+  renderg = createGraphics(panelw*renderscale, panelh*renderscale);
 
   input = createFileInput(handleImage, true);
   input.position(0, pageh+120);
@@ -108,6 +113,14 @@ function setup() {
   slider = createSlider(0, 10, 0, 1);
   slider.position(0, pageh+160);
   slider.size(80);
+
+  let button = createButton('export');
+  button.position(0, pageh+180);
+
+  // Use the button to change the background color.
+  button.mousePressed(() => {
+    renderg.save();
+  });
 
   describe('An interactive tool that displays an image on the left, and blank canvas on the right. Selecting portions of the image assembles them as tiles on the right.');
   
@@ -163,6 +176,8 @@ function draw() {
     tiles[i].display();
   }
   */
+ push();
+ translate(leftedge, 0);
  for (let i=0;i<lines.length;i++) {
   push();
   if (checkbox.checked()) translate((panelw-linewidths[i])/2, 0);
@@ -170,12 +185,36 @@ function draw() {
     lines[i][j].display(); 
   }
   pop();
+
+}
+ pop();
+
+  //offscreen buffer
+  renderg.background(255);
+  for (let i=0;i<lines.length;i++) {
+    renderg.push();
+    if (checkbox.checked()) renderg.translate(renderscale*(panelw-linewidths[i])/2, 0);
+    for (let j=0;j<lines[i].length;j++) {
+      //lines[i][j].display(); 
+      lines[i][j].render(renderg, renderscale);
+    }
+    renderg.pop();
  }
+
+ //image(renderg, 0, pageh, panelw/2, panelh/2);
+ image(renderg, leftedge, 0, panelw, panelh);
+  stroke(0);
+  noFill();
+  rect(leftedge, 0, panelw, panelh);
+  
+
   stroke(255, 0, 0);
   push();
+ translate(leftedge, 0);
+  //display cursor
   if (checkbox.checked()) translate((panelw-linewidths[curline])/2, 0);
   line(typex, typey, typex, typey+typeh);
-  if (typex == leftedge) {
+  if (typex == 0) {
     drawcursorhandle();
   }
   pop();
@@ -199,9 +238,9 @@ function drawcursorhandle() {
 
 function checkcursorhandle() {
   //console.log("mouseX "+mouseX);
-  if (typex!=leftedge) return false;
-  let offset = 0;
-  if (checkbox.checked()) offset = (panelw-linewidths[curline])/2;
+  if (typex!=0) return false;
+  let offset = leftedge;//0;
+  if (checkbox.checked()) offset += (panelw-linewidths[curline])/2;
   if (mouseX>offset+typex-handlew && mouseX<offset+typex+handlew && mouseY>typeh+typey && mouseY<typeh+typey+handlew) return true;
   else return false;
 }
@@ -331,7 +370,7 @@ function typetile(ntile) {
 function keyPressed() {
   console.log(keyCode);
   if (keyCode == 13) {//return
-    typex = leftedge;
+    typex = 0;
     typey+=typeh+spacing-1;
     //make new line array
     lines.push(new Array());
@@ -443,7 +482,7 @@ function keyPressed() {
       calculateLineWidth();
     }
     else {//if we get here, curline = 0 and length = 0 ?
-      typex = leftedge;
+      typex = 0;
       typey = topedge;
     }
    }
@@ -472,7 +511,7 @@ function keyReleased() {
 }
 
 function cleartiles() {
-  typex = leftedge;
+  typex = 0;//leftedge;
   typey = topedge;
   tiles = [];
 
@@ -504,6 +543,16 @@ class Tile {
     if (this.flipv) scale(1, -1);
     image(this.img, -0.5*this.w, -0.5*this.h, this.w, this.h);
     pop();
+  }
+
+  render(g, s) {//graphics context, scale
+    g.push();
+    g.translate(s*this.x, s*this.y);
+    g.translate(s*0.5*this.w, s*0.5*this.h);
+    if (this.fliph) g.scale(-1, 1);
+    if (this.flipv) g.scale(1, -1);
+    g.image(this.img, -0.5*s*this.w, -0.5*s*this.h, s*this.w, s*this.h);
+    g.pop();
   }
 
   copy() {
