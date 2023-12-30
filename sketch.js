@@ -185,17 +185,7 @@ function draw() {
  pop();
 */
 
-  //offscreen buffer
-  renderg.background(255);
-  for (let i=0;i<lines.length;i++) {
-    renderg.push();
-    if (checkbox.checked()) renderg.translate(renderscale*(panelw-linewidths[i])/2, 0);
-    for (let j=0;j<lines[i].length;j++) {
-      //lines[i][j].display(); 
-      lines[i][j].render(renderg, renderscale);
-    }
-    renderg.pop();
- }
+  //rendercanvas();//don't do this every frame
 
  //image(renderg, 0, pageh, panelw/2, panelh/2);
  image(renderg, leftedge, 0, panelw, panelh);
@@ -222,6 +212,21 @@ function draw() {
     noFill();
     rect(startx, starty,curx-startx, cury-starty);
   }
+}
+
+function rendercanvas() {
+  //offscreen buffer
+  renderg.background(255);
+  for (let i=0;i<lines.length;i++) {
+    renderg.push();
+    if (checkbox.checked()) renderg.translate(renderscale*(panelw-linewidths[i])/2, 0);
+    for (let j=0;j<lines[i].length;j++) {
+      //lines[i][j].display(); 
+      lines[i][j].render(renderg, renderscale);
+    }
+    renderg.pop();
+ }
+
 }
 
 function drawcursorhandle() {
@@ -366,6 +371,7 @@ function typetile(ntile) {
   lasttile = ntile;
   typex+=ntile.w+spacing;
   linewidths[curline]+=ntile.w+spacing;
+  rendercanvas();
 }
 
 function keyPressed() {
@@ -486,6 +492,7 @@ function keyPressed() {
       typex = 0;
       typey = topedge;
     }
+    rendercanvas();
    }
     
   
@@ -521,6 +528,7 @@ function cleartiles() {
   linewidths = [];
   linewidths.push(0);
   curline = 0;
+  rendercanvas();
 }
 
 
