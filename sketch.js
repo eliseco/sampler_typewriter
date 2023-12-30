@@ -100,13 +100,13 @@ function setup() {
   createCanvas(pagew+panelw, panelh);
 
   input = createFileInput(handleImage, true);
-  input.position(0, pageh+50);
+  input.position(0, pageh+120);
 
   checkbox = createCheckbox(' centered');
-  checkbox.position(0, pageh+100);
+  checkbox.position(0, pageh+140);
 
   slider = createSlider(0, 10, 0, 1);
-  slider.position(0, pageh+150);
+  slider.position(0, pageh+160);
   slider.size(80);
 
   describe('An interactive tool that displays an image on the left, and blank canvas on the right. Selecting portions of the image assembles them as tiles on the right.');
