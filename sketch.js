@@ -170,12 +170,7 @@ function draw() {
   text('type height: '+typeh, 10, pageh+45);//display bank number
   text('KEY BANK: '+curbank, 10, pageh+60);//display bank number
 
-
-  /*
-  for (let i=0;i<tiles.length;i++) {
-    tiles[i].display();
-  }
-  */
+/*
  push();
  translate(leftedge, 0);
  for (let i=0;i<lines.length;i++) {
@@ -188,6 +183,7 @@ function draw() {
 
 }
  pop();
+*/
 
   //offscreen buffer
   renderg.background(255);
@@ -313,6 +309,11 @@ function mouseDragged() {
   
 }
 
+function extract(x, y, w, h) {//accepts screen coordinates and returns corresponding image section in full res
+  let subimg = renderg.get((x-leftedge)*renderscale, renderscale*y,renderscale*w, renderscale*h);
+  return subimg;
+}
+
 function mouseReleased() {
   cursordrag = false;
   if (!dragging) return;
@@ -320,20 +321,20 @@ function mouseReleased() {
     dragging = false;
     return;
   }
-  let newx = min(curx, startx);
-  let newy = min(cury, starty);
-  let neww = abs(curx-startx);
-  let newh = abs(cury-starty);
-  //let tempw = typeh*(curx-startx)/(cury-starty);
-  let tempw = typeh*neww/newh;
-  //let subimg = img.get(startx, starty, curx-startx, cury-starty);
-  //let subimg = testpage.extract(startx, starty, curx-startx, cury-starty);
+  let newx = floor(min(curx, startx));
+  let newy = floor(min(cury, starty));
+  let neww = floor(abs(curx-startx));
+  let newh = floor(abs(cury-starty));
+  
+  let tempw = floor(typeh*neww/newh);
+ 
 
   
 
   let subimg;
   if (canvasdrag) {//grabbing from self-canvas!
-    subimg = get(newx+1, newy+1, neww-2, newh-2);
+   // subimg = get(newx+1, newy+1, neww-2, newh-2);
+    subimg = extract(newx, newy, neww, newh);
   }
   else {//grabbing from source image
     subimg = pages[curpage].extract(newx, newy, neww, newh);
