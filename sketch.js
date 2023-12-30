@@ -53,7 +53,7 @@ let lasttile = 0;
 let curbank = 0;//for having multiple memory banks for keyboard mappings 
 let numbanks = 3;
 let saves = [];
-let spacetile = 0;
+let spacetile = [];
 
 let handlew = 10;
 
@@ -126,7 +126,9 @@ function setup() {
     pages.push(tpage);
   }
   curpage = 0;
+  spacetile = new Array();
   for (let j=0;j<numbanks;j++) {
+    spacetile[j] = 0;
     saves[j] = new Array();
     for (let i=0;i<26;i++) {
       saves[j][i] = 0;
@@ -361,14 +363,14 @@ function keyPressed() {
   }
   else if (keyCode==32) {
     if (shiftPressed) {//controlPressed
-      spacetile = lasttile;
+      spacetile[curbank] = lasttile;
       console.log("saved spacebar");
     }
     else {//recall the correct tile, if exists
       if (lasttile!=0) {
-        if (spacetile!=0) {
+        if (spacetile[curbank]!=0) {
           console.log("recall space");
-          typetile(spacetile.copy());
+          typetile(spacetile[curbank].copy());
         }
       }
     }
