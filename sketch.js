@@ -22,6 +22,10 @@ let curline = 0;
 let cursordrag = false;
 let canvasdrag = false;//are we dragging in the canvas? otherwise in source image
 let startcursory;
+let sourcew = 0;
+let sourceh = 0;
+let desth = 0;
+let destw = 0;
 
 let input;//file upload input
 let checkbox;//checkbox for centered mode
@@ -71,20 +75,7 @@ function preload() {
 // then add it to the images array.
 function handleImage(file) {
   if (file.type === 'image') {
-    /*
-    let tempimg = createImg(file.data, '');
-    tempimg.hide();
-    images.push(tempimg);
-    */
    let tempimg = loadImage(file.data, success, failure);
-
-   /*
-    let tpage = new Page(tempimg);
-    tpage.autofit(pagew, 1000);
-    //pages.push(tpage);
-    pages.unshift(tpage);
-    */
-   //let tempimg = loadImage("")
   }
 }
 
@@ -147,7 +138,7 @@ function draw() {
     noStroke();
     fill(0, 0, 0);
     //
-    text('spacing: '+spacing, 10, pageh+17);
+    text('spacing: '+spacing, 10, pageh-17);
     
   }
   else slider.hide();
@@ -156,9 +147,15 @@ function draw() {
 
   textSize(14);
   noStroke();
+  if (dragging || canvasdrag) fill(0, 0, 0);
+  else fill(200, 200, 200);
+
+  text('source: '+sourcew+" x "+sourceh, 10, pageh);
+  text('destination: '+destw+" x "+desth, 10, pageh+15);
+  text('aspect ratio: '+Number(sourcew/sourceh).toFixed(3), 10, pageh+30);
   fill(0, 0, 0);
-  text('type height: '+typeh, 10, pageh+37);//display bank number
-  text('KEY BANK: '+curbank, 10, pageh+57);//display bank number
+  text('type height: '+typeh, 10, pageh+45);//display bank number
+  text('KEY BANK: '+curbank, 10, pageh+60);//display bank number
 
 
   /*
@@ -221,7 +218,7 @@ function mousePressed() {
     cursordrag = true;
     startcursory = mouseY;
   }
-  else {//dragging on right side
+  else if (mouseX>pagew) {//dragging on right side
     startx=curx = mouseX;
     starty=cury = mouseY;
     dragging = true;
@@ -233,12 +230,31 @@ function mouseDragged() {
   curx = mouseX;
   cury = mouseY;
 
+  if (cursordrag) {
+    dy = mouseY-startcursory;
+    typeh+=dy;
+    if (typeh<mintypeh) typeh = mintypeh;
+    if (typeh>maxtypeh) typeh = maxtypeh;
+    startcursory = mouseY;
+    return;
+  }
+
+  let newx = min(curx, startx);
+  let newy = min(cury, starty);
+  let neww = abs(curx-startx);
+  let newh = abs(cury-starty);
+  let tempw = typeh*neww/newh;
+  sourcew = neww;
+  sourceh = newh;
+  desth = typeh;
+  destw = tempw;
+
   if (canvasdrag) {
     if (curx < pagew) curx = pagew;
-    //if (curx > width) curx = width;
-
-    //if (cury > height) cury = height;
     if (cury < 0) cury = 0;
+
+    sourcew-=2;
+    sourceh-=2;
   }
   else {
     if (curx > pages[curpage].w) curx = pages[curpage].w;
@@ -246,15 +262,16 @@ function mouseDragged() {
     
     if (cury > pages[curpage].h) cury = pages[curpage].h;
     if (cury < 0) cury = 0;
+
+    sourcew=sourcew/pages[curpage].scale;
+    sourceh=sourceh/pages[curpage].scale;
   }
 
-  if (cursordrag) {
-    dy = mouseY-startcursory;
-    typeh+=dy;
-    if (typeh<mintypeh) typeh = mintypeh;
-    if (typeh>maxtypeh) typeh = maxtypeh;
-    startcursory = mouseY;
-  }
+  sourcew = floor(sourcew);
+  sourceh = floor(sourceh);
+  destw = floor(destw);
+  desth = floor(desth);
+  
 }
 
 function mouseReleased() {
@@ -272,6 +289,8 @@ function mouseReleased() {
   let tempw = typeh*neww/newh;
   //let subimg = img.get(startx, starty, curx-startx, cury-starty);
   //let subimg = testpage.extract(startx, starty, curx-startx, cury-starty);
+
+  
 
   let subimg;
   if (canvasdrag) {//grabbing from self-canvas!
