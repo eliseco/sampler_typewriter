@@ -109,6 +109,10 @@ function setup() {
 
   checkbox = createCheckbox(' centered');
   checkbox.position(0, pageh+140);
+  checkbox.mouseClicked(() => {
+    console.log("checkbox clicked");
+    rendercanvas();
+  });
 
   slider = createSlider(0, 10, 0, 1);
   slider.position(0, pageh+160);
@@ -445,9 +449,11 @@ function keyPressed() {
   }
   else if (keyCode==37 || keyCode==39) {//left and right arrows
     if (lasttile!=0) lasttile.fliph = !lasttile.fliph;
+    rendercanvas();
   }
   else if (keyCode==38 || keyCode==40) {//up and down arrows
     if (lasttile!=0) lasttile.flipv = !lasttile.flipv;
+    rendercanvas();
   }
   else if (keyCode==8) {//DELETE
     
@@ -492,11 +498,11 @@ function keyPressed() {
       typex = 0;
       typey = topedge;
     }
-    rendercanvas();
-   }
     
+   }
+   rendercanvas(); 
   
-  }
+  }//END DELETE
 }
 
 function calculateLineWidth() {
