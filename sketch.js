@@ -483,20 +483,6 @@ function keyPressed() {
   }
   else if (keyCode==8) {//DELETE
     
-    /*
-    let ttile = tiles.pop();
-    //typex-=ttile.w;
-    if (tiles.length>=1) {
-      let prevtile = tiles[tiles.length-1];
-      typex = prevtile.x+prevtile.w;
-      typey = prevtile.y;
-      typeh = prevtile.h;
-    }
-    else {
-      typex = leftedge;
-      typey = topedge;
-    }
-    */
    let ttile = lines[curline].pop();
    if (lines[curline].length>=1) {
       let prevtile = lines[curline][lines[curline].length-1];
@@ -625,6 +611,17 @@ class Rectangle {
       if (i%5==0) line(i, this.y, i, this.y+this.h);
     }
   }
+
+  screenDisplay(s) {//display at screen coordinates
+    noFill();
+    stroke(255, 0, 0);
+    rect(s*this.x, s*this.y, s*this.w, s*this.h);
+    for (let i=floor(s*this.x);i<floor(s*this.x+s*this.w);i++){
+
+      if (i%3==0) line(i, s*this.y, i, s*this.y+s*this.h);
+    }
+
+  }
 }
 
 class Page {//a source image, scaled and with selection areas saved
@@ -678,13 +675,21 @@ class Page {//a source image, scaled and with selection areas saved
    push();
    scale(this.scale);
    image(this.img, 0, 0);
+
+   /*
    push();
    //scale(1/this.fitscale);
     for (let i=0;i<this.rects.length;i++) {
       this.rects[i].display();
     }
     pop();
+    */
     pop();
+
+
+    for (let i=0;i<this.rects.length;i++) {
+      this.rects[i].screenDisplay(this.scale);
+    }
   }
 
 }
