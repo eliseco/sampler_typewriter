@@ -119,7 +119,7 @@ function setup() {
   slider.size(80);
 
   let button = createButton('export');
-  button.position(0, pageh+180);
+  button.position(160, pageh+160);
 
   // Use the button to change the background color.
   button.mousePressed(() => {
@@ -147,6 +147,11 @@ function setup() {
 function draw() {
   background(255);
   pages[curpage].display();
+
+  noStroke();
+  fill(255);
+  rect(0, pageh, pagew, panelh-pageh);
+  rect(pagew, 0, panelw, panelh);
 
   if (curline==0 && lines[curline].length==0) {//we are on a clear canvas
     slider.show();  
@@ -302,9 +307,11 @@ function mouseDragged() {
   }
   else {
     if (curx > pages[curpage].w) curx = pages[curpage].w;
+    if (curx > pagew) curx = pagew;
     if (curx < 0) curx = 0;
     
     if (cury > pages[curpage].h) cury = pages[curpage].h;
+    if (cury > pageh) cury = pageh;
     if (cury < 0) cury = 0;
 
     sourcew=sourcew/pages[curpage].scale;
@@ -347,7 +354,7 @@ function mouseReleased() {
   }
   else {//grabbing from source image
     subimg = pages[curpage].extract(newx, newy, neww, newh);
-    pages[curpage].rects.push(new Rectangle(newx, newy, neww, newh));
+    //pages[curpage].rects.push(new Rectangle(newx, newy, neww, newh));//move this to extract
   }
 
 
@@ -443,6 +450,25 @@ function keyPressed() {
         }
       }
     }
+  }
+  else if (keyCode==188) {//,< zoom in
+    pages[curpage].zoomin();
+
+  }
+  else if (keyCode==190) {//.> zoom out
+    pages[curpage].zoomout();
+  }
+  else if (keyCode==37 && shiftPressed) {//left arrow; pan left
+
+  }
+  else if (keyCode==39 && shiftPressed) {//right arrow; pan right
+    
+  }
+  else if (keyCode==38 && shiftPressed) {//up arrow; pan up
+    
+  }
+  else if (keyCode==40 && shiftPressed) {//down arrow; pan down
+    
   }
   else if (keyCode==192) {//tilde
     if (shiftPressed) cleartiles();
@@ -580,10 +606,10 @@ class Tile {
 
 class Rectangle {
   constructor(x, y, w, h) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
+    this.x = floor(x);
+    this.y = floor(y);
+    this.w = floor(w);
+    this.h = floor(h);
   }
 
   display() {
@@ -596,7 +622,7 @@ class Rectangle {
     */
    rect(this.x, this.y, this.w, this.h);
     for (let i=this.x;i<this.x+this.w;i++){
-      if (i%3==0) line(i, this.y, i, this.y+this.h);
+      if (i%5==0) line(i, this.y, i, this.y+this.h);
     }
   }
 }
@@ -605,8 +631,11 @@ class Page {//a source image, scaled and with selection areas saved
   constructor(myimg) {
     this.img = myimg;
     this.scale = 1;
+    this.fitscale = 1;//scale at which fits into defined display panel; mouse coord are one to one scale
     this.w = myimg.width;
     this.h = myimg.height;
+    this.x = 0;
+    this.y = 0;
     console.log("created page with image "+this.w+" x "+this.h);
     this.rects = [];//note rects are in screen space
   }
@@ -614,6 +643,7 @@ class Page {//a source image, scaled and with selection areas saved
   autofit(w, h) {//scale the image to fit rect. ASSUME IMAGE IS ALWAYS >= THAN DRAWN AREA
     
     this.scale = min(w/this.img.width, h/this.img.height);
+    this.fitscale = this.scale;
     this.w = this.scale*this.img.width;
     this.h = this.scale*this.img.height;
 
@@ -621,16 +651,40 @@ class Page {//a source image, scaled and with selection areas saved
 
   }
 
+  zoomin() {
+    this.scale+=0.1;
+    if (this.scale > 1) this.scale = 1;
+
+  }
+
+  zoomout() {
+    this.scale-=0.1;
+    if (this.scale < this.fitscale) this.scale = this.fitscale;
+  }
+
   extract(x, y, w, h) {//accepts screen coordinates and returns corresponding image section in full res
     let subimg = this.img.get(x/this.scale, y/this.scale, w/this.scale, h/this.scale);
+    this.rects.push(new Rectangle(x/this.scale, y/this.scale, w/this.scale, h/this.scale));
     return subimg;
   }
 
   display() {
+    /*
     image(this.img, 0, 0, this.w, this.h);
     for (let i=0;i<this.rects.length;i++) {
       this.rects[i].display();
     }
+    */
+   push();
+   scale(this.scale);
+   image(this.img, 0, 0);
+   push();
+   //scale(1/this.fitscale);
+    for (let i=0;i<this.rects.length;i++) {
+      this.rects[i].display();
+    }
+    pop();
+    pop();
   }
 
 }
