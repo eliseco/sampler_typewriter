@@ -2,7 +2,7 @@
 let img;
 let typeh  = 100;
 let pagew = 500;
-let pageh = 1000;
+let pageh = 800;//1000;
 let leftedge = pagew+15;
 let typex = 0;
 let topedge = typey = 20;
@@ -105,21 +105,21 @@ function setup() {
   renderg = createGraphics(panelw*renderscale, panelh*renderscale);
 
   input = createFileInput(handleImage, true);
-  input.position(0, pageh+120);
+  input.position(0, 150+pageh+120);
 
   checkbox = createCheckbox(' centered');
-  checkbox.position(0, pageh+140);
+  checkbox.position(0, 150+pageh+140);
   checkbox.mouseClicked(() => {
     console.log("checkbox clicked");
     rendercanvas();
   });
 
   slider = createSlider(0, 10, 0, 1);
-  slider.position(0, pageh+160);
+  slider.position(0, 150+pageh+160);
   slider.size(80);
 
   let button = createButton('export');
-  button.position(160, pageh+160);
+  button.position(160, 150+pageh+160);
 
   // Use the button to change the background color.
   button.mousePressed(() => {
@@ -160,7 +160,7 @@ function draw() {
     noStroke();
     fill(0, 0, 0);
     //
-    text('spacing: '+spacing, 10, pageh-17);
+    text('spacing: '+spacing, 10, 150+pageh-17);
     
   }
   else slider.hide();
@@ -172,12 +172,12 @@ function draw() {
   if (dragging || canvasdrag) fill(0, 0, 0);
   else fill(200, 200, 200);
 
-  text('source: '+sourcew+" x "+sourceh, 10, pageh);
-  text('destination: '+destw+" x "+desth, 10, pageh+15);
-  text('aspect ratio: '+Number(sourcew/sourceh).toFixed(3), 10, pageh+30);
+  text('source: '+sourcew+" x "+sourceh, 10, 150+pageh);
+  text('destination: '+destw+" x "+desth, 10, 150+pageh+15);
+  text('aspect ratio: '+Number(sourcew/sourceh).toFixed(3), 10, 150+pageh+30);
   fill(0, 0, 0);
-  text('type height: '+typeh, 10, pageh+45);//display bank number
-  text('KEY BANK: '+curbank, 10, pageh+60);//display bank number
+  text('type height: '+typeh, 10, 150+pageh+45);//display bank number
+  text('KEY BANK: '+curbank, 10, 150+pageh+60);//display bank number
 
 /*
  push();
@@ -256,8 +256,9 @@ function checkcursorhandle() {
 }
 
 function mousePressed() {
-  //if (mouseX<img.width && mouseY<img.height) {
-  if (mouseX<pages[curpage].w && mouseY<pages[curpage].h) {
+  
+  //if (mouseX<pages[curpage].w && mouseY<pages[curpage].h) {
+  if (mouseX<pagew && mouseY<pageh) {  
     startx=curx = mouseX;
     starty=cury = mouseY;
     dragging = true;
@@ -306,11 +307,11 @@ function mouseDragged() {
     sourceh-=2;
   }
   else {
-    if (curx > pages[curpage].w) curx = pages[curpage].w;
+    //if (curx > pages[curpage].w) curx = pages[curpage].w;
     if (curx > pagew) curx = pagew;
     if (curx < 0) curx = 0;
     
-    if (cury > pages[curpage].h) cury = pages[curpage].h;
+    //if (cury > pages[curpage].h) cury = pages[curpage].h;
     if (cury > pageh) cury = pageh;
     if (cury < 0) cury = 0;
 
