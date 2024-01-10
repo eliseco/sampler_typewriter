@@ -460,16 +460,18 @@ function keyPressed() {
     pages[curpage].zoomout();
   }
   else if (keyCode==37 && shiftPressed) {//left arrow; pan left
+    pages[curpage].panx(100);
 
   }
   else if (keyCode==39 && shiftPressed) {//right arrow; pan right
-    
+    pages[curpage].panx(-100);
+
   }
   else if (keyCode==38 && shiftPressed) {//up arrow; pan up
-    
+    pages[curpage].pany(100);
   }
   else if (keyCode==40 && shiftPressed) {//down arrow; pan down
-    
+    pages[curpage].pany(-100);
   }
   else if (keyCode==192) {//tilde
     if (shiftPressed) cleartiles();
@@ -632,6 +634,10 @@ class Page {//a source image, scaled and with selection areas saved
     this.fitscale = 1;//scale at which fits into defined display panel; mouse coord are one to one scale
     this.w = myimg.width;
     this.h = myimg.height;
+    this.viewportw = myimg.width;
+    this.viewporth = myimg.height;
+    this.viewportx = 0;
+    this.viewporty = 0;
     this.x = 0;
     this.y = 0;
     console.log("created page with image "+this.w+" x "+this.h);
@@ -644,25 +650,65 @@ class Page {//a source image, scaled and with selection areas saved
     this.fitscale = this.scale;
     this.w = this.scale*this.img.width;
     this.h = this.scale*this.img.height;
+    this.viewportw = w;
+    this.viewporth = h;
 
     //console.log("autofit: "+fitwidth+" to "+this.w+" "+this.h+", scale "+this.scale);
 
   }
 
   zoomin() {
+    let pivot = this.screentoimg(this.viewportw/2, this.viewporth/2);
     this.scale+=0.1;
     if (this.scale > 1) this.scale = 1;
-
+    this.x = -pivot.x*this.scale+this.viewportw/2;
+   
+    this.y = -pivot.y*this.scale+this.viewporth/2;
+   
+    this.checkbounds();
   }
 
   zoomout() {
+    let pivot = this.screentoimg(this.viewportw/2, this.viewporth/2);
     this.scale-=0.1;
     if (this.scale < this.fitscale) this.scale = this.fitscale;
+    this.x = -pivot.x*this.scale+this.viewportw/2;
+    
+    this.y = -pivot.y*this.scale+this.viewporth/2;
+    
+    this.checkbounds();
+  }
+
+  panx(dx) {
+    this.x+=dx;
+    this.checkbounds();
+  }
+
+  pany(dy) {
+    this.y+=dy;
+    this.checkbounds();
+  }
+
+  checkbounds() {
+    if (this.x > 0) this.x = 0;
+    if (this.x < -this.img.width*this.scale+this.viewportw) this.x = -this.img.width*this.scale+this.viewportw;
+    if (this.y > 0) this.y = 0;
+    if (this.y < -this.img.height*this.scale+this.viewporth) this.y = -this.img.height*this.scale+this.viewporth;
+  }
+
+  screentoimg(x, y) {//returns screen coord mapped to image pixel coords
+    let imgx = (x-this.x)/this.scale;
+    let imgy = (y-this.y)/this.scale;
+    return({x: imgx, y: imgy});
   }
 
   extract(x, y, w, h) {//accepts screen coordinates and returns corresponding image section in full res
-    let subimg = this.img.get(x/this.scale, y/this.scale, w/this.scale, h/this.scale);
-    this.rects.push(new Rectangle(x/this.scale, y/this.scale, w/this.scale, h/this.scale));
+    let pos = this.screentoimg(x, y);
+    let subimg = this.img.get(pos.x, pos.y, w/this.scale, h/this.scale);
+    this.rects.push(new Rectangle(pos.x, pos.y, w/this.scale, h/this.scale));
+    //let subimg = this.img.get(x/this.scale, y/this.scale, w/this.scale, h/this.scale);
+    //this.rects.push(new Rectangle(x/this.scale, y/this.scale, w/this.scale, h/this.scale));
+    
     return subimg;
   }
 
@@ -674,6 +720,7 @@ class Page {//a source image, scaled and with selection areas saved
     }
     */
    push();
+   translate(this.x, this.y);
    scale(this.scale);
    image(this.img, 0, 0);
 
@@ -687,10 +734,12 @@ class Page {//a source image, scaled and with selection areas saved
     */
     pop();
 
-
+    push();
+    translate(this.x, this.y);
     for (let i=0;i<this.rects.length;i++) {
       this.rects[i].screenDisplay(this.scale);
     }
+    pop();
   }
 
 }
