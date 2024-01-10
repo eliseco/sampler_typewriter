@@ -65,6 +65,8 @@ let spacetile = [];
 
 let handlew = 10;
 
+let previewcanvas = true;//whether we draw scaled offscreen buffer or not
+
 function preload() {
   let myimglist = customlist.concat(imglist);
   for (let i=0;i<myimglist.length;i++) {
@@ -179,7 +181,7 @@ function draw() {
   text('type height: '+typeh, 10, 150+pageh+45);//display bank number
   text('KEY BANK: '+curbank, 10, 150+pageh+60);//display bank number
 
-/*
+
  push();
  translate(leftedge, 0);
  for (let i=0;i<lines.length;i++) {
@@ -192,12 +194,12 @@ function draw() {
 
 }
  pop();
-*/
+
 
   //rendercanvas();//don't do this every frame
 
- //image(renderg, 0, pageh, panelw/2, panelh/2);
- image(renderg, leftedge, 0, panelw, panelh);
+ 
+ //image(renderg, leftedge, 0, panelw, panelh);
   stroke(0);
   noFill();
   rect(leftedge, 0, panelw, panelh);
@@ -355,13 +357,11 @@ function mouseReleased() {
   }
   else {//grabbing from source image
     subimg = pages[curpage].extract(newx, newy, neww, newh);
-    //pages[curpage].rects.push(new Rectangle(newx, newy, neww, newh));//move this to extract
+    
   }
 
 
   let newtile = new Tile(subimg, typex, typey, tempw, typeh);
-  //tiles.push(new Tile(subimg, typex, typey, tempw, typeh));
-  //typex+=tempw+spacing;
   typetile(newtile);
   console.log("SNIP");
   dragging = false;
@@ -390,7 +390,9 @@ function keyPressed() {
   console.log(keyCode);
   if (keyCode == 13) {//return
     typex = 0;
-    typey+=typeh+spacing-1;
+    //typey+=typeh+spacing-1;//-1 to fix spaced lines, but makes it worse when scaled?
+    typey+=typeh+spacing;
+    
     //make new line array
     lines.push(new Array());
     linewidths.push(0);
@@ -483,6 +485,9 @@ function keyPressed() {
   else if (keyCode==38 || keyCode==40) {//up and down arrows
     if (lasttile!=0) lasttile.flipv = !lasttile.flipv;
     rendercanvas();
+  }
+  else if (keyCode==220) {//backslash \
+    previewcanvas = !previewcanvas;
   }
   else if (keyCode==8) {//DELETE
     
