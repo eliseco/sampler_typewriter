@@ -695,10 +695,12 @@ class Page {//a source image, scaled and with selection areas saved
   }
 
   checkbounds() {
-    if (this.x > 0) this.x = 0;
+    
     if (this.x < -this.img.width*this.scale+this.viewportw) this.x = -this.img.width*this.scale+this.viewportw;
-    if (this.y > 0) this.y = 0;
+    if (this.x > 0) this.x = 0;
+    
     if (this.y < -this.img.height*this.scale+this.viewporth) this.y = -this.img.height*this.scale+this.viewporth;
+    if (this.y > 0) this.y = 0;
   }
 
   screentoimg(x, y) {//returns screen coord mapped to image pixel coords
