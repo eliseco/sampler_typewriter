@@ -141,7 +141,7 @@ function setup() {
   slider.position(0, 150+pageh+160);
   slider.size(80);
 
-  let button = createButton('export');
+  let button = createButton('EXPORT');
   button.position(160, 150+pageh+160);
 
   // Use the button to change the background color.
@@ -381,7 +381,7 @@ function mouseReleased() {
   let newx = floor(min(curx, startx));
   let newy = floor(min(cury, starty));
   let neww = floor(abs(curx-startx));
-  let newh = floor(abs(cury-starty));
+  let newh = ceil(abs(cury-starty));//was floor; trying to fix gaps
   
   let tempw = floor(typeh*neww/newh);
  
@@ -412,12 +412,12 @@ function typetile(ntile) {
   if (ntile.h != typeh) {//resize tile
     let tempw = typeh*ntile.w/ntile.h;
     ntile.w = tempw;
-    ntile.h = typeh;
+    ntile.h = typeh;//+2?fix gaps
   }
   tiles.push(ntile);
   lines[curline].push(ntile);
   ntile.x = typex;
-  ntile.y = typey;
+  ntile.y = typey;//-1?fix gaps
   lasttile = ntile;
   typex+=ntile.w+spacing;
   linewidths[curline]+=ntile.w+spacing;
@@ -610,9 +610,9 @@ class Tile {
   constructor(i, x, y, w, h) {
     this.img = i;
     this.x = x;
-    this.y = y;
+    this.y = y-1;
     this.w = w;
-    this.h = h;
+    this.h = h+2;
     this.fliph = false;
     this.flipv = false;
   }
@@ -630,11 +630,12 @@ class Tile {
 
   render(g, s) {//graphics context, scale
     g.push();
-    g.translate(s*this.x, s*this.y);
-    g.translate(s*0.5*this.w, s*0.5*this.h);
+    g.translate(s*this.x, s*this.y-1);
+    //g.translate(s*0.5*this.w, s*0.5*this.h);
+    g.translate(s*0.5*this.w, s*0.5*this.h);//fix gaps
     if (this.fliph) g.scale(-1, 1);
     if (this.flipv) g.scale(1, -1);
-    g.image(this.img, -0.5*s*this.w, -0.5*s*this.h, s*this.w, s*this.h);
+    g.image(this.img, -0.5*s*this.w, -0.5*s*this.h, s*this.w, s*this.h+2);
     g.pop();
   }
 
