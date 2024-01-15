@@ -90,11 +90,32 @@ function success(tempimg) {
   tpage.autofit(pagew, pageh);
   //pages.push(tpage);
   pages.unshift(tpage);
+  curpage = 0;
 }
 
 function failure(event) {
   console.error('Oops!', event);
 }
+
+function handleKeyboardImage(file) {
+  if (file.type === 'image') {
+    let fname = file.name.split('.')[0];
+    if (fname.length==1) {
+      let kindex = fname.charCodeAt(0);
+      if (kindex >=65 && kindex < 91) {
+       //let tempimg = loadImage(file.data, keyloadSuccess, failure);
+      let tempimg = loadImage(file.data, 
+        (timg)=>{
+          console.log("loaded keyboard image, mapping to key "+fname+" index "+kindex);
+          saves[curbank][kindex-65] = new Tile(timg, 0, 0, timg.width, timg.height);
+          console.log("made tile "+timg.width+" "+timg.height);
+        }, 
+        failure);
+      }
+    }
+}
+}
+
 
 function setup() {
   console.log('SAVES: '+saves);
@@ -127,6 +148,23 @@ function setup() {
   button.mousePressed(() => {
     renderg.save();
   });
+
+  let kbutton = createButton('saveKeyboard');
+  kbutton.position(160, 30+150+pageh+180);
+  kbutton.mousePressed(() => {
+    savekeyboard();
+  });
+
+  /*
+  let loadkbutton = createButton('loadKeyboard');
+  loadkbutton.position(160, 150+100+pageh+180);
+  loadkbutton.mousePressed(() => {
+    loadkeyboard();
+  });
+  */
+  let loadkbutton = createFileInput(handleKeyboardImage, true);
+  loadkbutton.position(160+100, 30+150+pageh+180);
+  
 
   describe('An interactive tool that displays an image on the left, and blank canvas on the right. Selecting portions of the image assembles them as tiles on the right.');
   
@@ -199,7 +237,7 @@ function draw() {
   //rendercanvas();//don't do this every frame
 
  
- //image(renderg, leftedge, 0, panelw, panelh);
+ image(renderg, leftedge, 0, panelw, panelh);
   stroke(0);
   noFill();
   rect(leftedge, 0, panelw, panelh);
@@ -424,12 +462,12 @@ function keyPressed() {
       console.log("saved "+key);
     }
     else {//recall the correct tile, if exists
-      if (lasttile!=0) {
+      //if (lasttile!=0) {
         if (saves[curbank][saveindex]!=0) {
           console.log("recall saves"+saveindex);
           typetile(saves[curbank][saveindex].copy());
         }
-      }
+      //}
     }
   }
   else if (shiftPressed && keyCode==219) {//'['
@@ -541,6 +579,16 @@ function keyReleased() {
   }
   if (keyCode==CONTROL) {
     controlPressed = false;
+  }
+}
+
+function savekeyboard() {
+  for (let i=0;i<26;i++) {
+    if (saves[curbank][i]!=0) {
+      let filename = String.fromCharCode(i+65)+".png";
+      console.log("saving "+filename);
+      save(saves[curbank][i].img, filename);
+    }
   }
 }
 
