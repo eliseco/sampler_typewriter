@@ -529,11 +529,11 @@ function keyPressed() {
     if (shiftPressed) cleartiles();
   }
   else if (keyCode==37 || keyCode==39) {//left and right arrows
-    if (lasttile!=0) lasttile.fliph = !lasttile.fliph;
+    if (lasttile!=0) lasttile.fliphoriz();
     rendercanvas();
   }
   else if (keyCode==38 || keyCode==40) {//up and down arrows
-    if (lasttile!=0) lasttile.flipv = !lasttile.flipv;
+    if (lasttile!=0) lasttile.flipvert();
     rendercanvas();
   }
   else if (keyCode==191) {//forward slash /
@@ -550,7 +550,7 @@ function keyPressed() {
    let ttile = lines[curline].pop();
    if (lines[curline].length>=1) {
       let prevtile = lines[curline][lines[curline].length-1];
-      typex = prevtile.x+prevtile.w+spacing;
+      typex = prevtile.x+prevtile.getwidth()+spacing;
       typey = prevtile.y;
       typeh = prevtile.h;
       //linewidths[curline]-=ttile.width+spacing;
@@ -564,7 +564,7 @@ function keyPressed() {
     }
     if (lines[curline].length>=1) {
       let prevtile = lines[curline][lines[curline].length-1];
-      typex = prevtile.x+prevtile.w+spacing;
+      typex = prevtile.x+prevtile.getwidth()+spacing;
       typey = prevtile.y;
       typeh = prevtile.h;
 
@@ -635,6 +635,7 @@ class Tile {
     this.fliph = false;
     this.flipv = false;
     this.angle = 0;
+    this.sideways = false;
   }
 
   display() {
@@ -651,6 +652,8 @@ class Tile {
   rotate() {
     this.angle+=90;
     if (this.angle > 270) this.angle = 0;
+    if (this.angle==90 || this.angle==270) this.sideways = true;
+    else this.sideways = false;
   }
 
   render(g, s) {//graphics context, scale
@@ -668,7 +671,7 @@ class Tile {
    let curw = this.w;
    let curh = this.h;
    let domod = false;
-   if (this.angle == 90 || this.angle==270) {//need to modify w and h so stays same lineheight
+   if (this.sideways) {//need to modify w and h so stays same lineheight
     let mod = this.h/this.w;
     curw*=mod;
     curh*=mod;
@@ -698,16 +701,27 @@ class Tile {
     //g.pop();
   }
 
+  fliphoriz() {
+    if (this.sideways) this.flipv = !this.flipv;
+    else this.fliph = !this.fliph;
+  }
+
+  flipvert() {
+    if (!this.sideways) this.flipv = !this.flipv;
+    else this.fliph = !this.fliph;
+  }
+
   copy() {
     let newtile = new Tile(this.img, this.x, this.y, this.w, this.h);
     newtile.fliph = this.fliph;
     newtile.flipv = this.flipv;
     newtile.angle = this.angle;
+    newtile.sideways = this.sideways;
     return (newtile);
   }
 
   getwidth() {
-    if (this.angle == 0 || this.angle == 180) return this.w;
+    if (!this.sideways) return this.w;
     else return (this.h*this.h/this.w);
   }
 }
