@@ -182,6 +182,8 @@ function setup() {
       saves[j][i] = 0;
     }
   }
+
+  angleMode(DEGREES);
 }
 
 function draw() {
@@ -419,9 +421,19 @@ function typetile(ntile) {
   ntile.x = typex;
   ntile.y = typey;//-1?fix gaps
   lasttile = ntile;
-  typex+=ntile.w+spacing;
-  linewidths[curline]+=ntile.w+spacing;
+
+
+  updatecursor();
+  //typex+=ntile.w+spacing;
+  //linewidths[curline]+=ntile.w+spacing;
   rendercanvas();
+}
+
+function updatecursor() {
+  
+  calculateLineWidth();
+  console.log("update cursor, typex "+linewidths[curline]);
+  typex = linewidths[curline];
 }
 
 function keyPressed() {
@@ -524,8 +536,14 @@ function keyPressed() {
     if (lasttile!=0) lasttile.flipv = !lasttile.flipv;
     rendercanvas();
   }
+  else if (keyCode==191) {//forward slash /
+    if (lasttile!=0) lasttile.rotate();
+    updatecursor();
+    rendercanvas();
+  }
   else if (keyCode==220) {//backslash \
     previewcanvas = !previewcanvas;
+    console.log("PREVIEW CANVAS: "+previewcanvas);
   }
   else if (keyCode==8) {//DELETE
     
@@ -566,7 +584,8 @@ function keyPressed() {
 function calculateLineWidth() {
   let w = 0;
   for (let i=0;i<lines[curline].length;i++) {
-    w+=lines[curline][i].w+spacing;
+    //w+=lines[curline][i].w+spacing;
+    w+=lines[curline][i].getwidth()+spacing;
   }
   linewidths[curline] = w;
   console.log("linewidth: "+w+" for curline:"+curline);
@@ -615,6 +634,7 @@ class Tile {
     this.h = h+2;
     this.fliph = false;
     this.flipv = false;
+    this.angle = 0;
   }
 
   display() {
@@ -628,7 +648,14 @@ class Tile {
     pop();
   }
 
+  rotate() {
+    this.angle+=90;
+    if (this.angle > 270) this.angle = 0;
+  }
+
   render(g, s) {//graphics context, scale
+
+    /* pre-rotate version
     g.push();
     g.translate(s*this.x, s*this.y-1);
     //g.translate(s*0.5*this.w, s*0.5*this.h);
@@ -637,13 +664,51 @@ class Tile {
     if (this.flipv) g.scale(1, -1);
     g.image(this.img, -0.5*s*this.w, -0.5*s*this.h, s*this.w, s*this.h+2);
     g.pop();
+    */
+   let curw = this.w;
+   let curh = this.h;
+   let domod = false;
+   if (this.angle == 90 || this.angle==270) {//need to modify w and h so stays same lineheight
+    let mod = this.h/this.w;
+    curw*=mod;
+    curh*=mod;
+    domod = true;
+   }
+    g.push();
+   
+    g.translate(s*this.x, s*this.y-1);
+    
+
+    
+    if (!domod) g.translate(s*0.5*curw, s*0.5*curh);
+    else g.translate(s*0.5*curh, s*0.5*curw);
+    //g.push();
+    g.angleMode(DEGREES);
+    g.rotate(this.angle);
+    
+    if (this.fliph) g.scale(-1, 1);
+    if (this.flipv) g.scale(1, -1);
+    
+    g.push();
+    
+    g.translate(-0.5*s*curw, -0.5*s*curh);
+    g.image(this.img, 0, 0, s*curw, s*curh+1);
+    g.pop();
+    g.pop();
+    //g.pop();
   }
 
   copy() {
     let newtile = new Tile(this.img, this.x, this.y, this.w, this.h);
     newtile.fliph = this.fliph;
     newtile.flipv = this.flipv;
+    newtile.angle = this.angle;
     return (newtile);
+  }
+
+  getwidth() {
+    if (this.angle == 0 || this.angle == 180) return this.w;
+    else return (this.h*this.h/this.w);
   }
 }
 
