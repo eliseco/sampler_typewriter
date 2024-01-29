@@ -1,8 +1,8 @@
 
 let img;
 let typeh  = 100;
-let pagew = 500;
-let pageh = 800;//1000;
+let pagew = 1000; //500x800 for website; 1000x1200 for desktop
+let pageh = 1200;//1000;
 let leftedge = pagew+15;
 let typex = 0;
 let topedge = typey = 20;
@@ -16,8 +16,8 @@ let mintypeh = 30;
 let maxtypeh = 500;
 
 //composition area
-let panelw = 1100;
-let panelh = 1600;//make sure this is bigger than pageh
+let panelw = 2100;//1100; //1100x1600 for website; 2100x3700 for big monitor
+let panelh = 3600;//1600;//make sure this is bigger than pageh
 let centerx; 
 let lines = [];//this will be array of arrays
 let linewidths = [];//keep track of line widths, for centering
@@ -66,6 +66,13 @@ let spacetile = [];
 let handlew = 10;
 
 let previewcanvas = true;//whether we draw scaled offscreen buffer or not
+
+window.addEventListener("keydown", function(e) {
+  if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+      e.preventDefault();
+  }
+}, false);
+
 
 function preload() {
   let myimglist = customlist.concat(imglist);
@@ -187,6 +194,7 @@ function setup() {
 }
 
 function draw() {
+  noSmooth();
   background(255);
   pages[curpage].display();
 
@@ -267,6 +275,7 @@ function draw() {
 
 function rendercanvas() {
   //offscreen buffer
+  renderg.noSmooth();
   renderg.background(255);
   for (let i=0;i<lines.length;i++) {
     renderg.push();
