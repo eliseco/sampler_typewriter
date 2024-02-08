@@ -421,7 +421,7 @@ function mouseReleased() {
 
 function typetile(ntile) {
   if (ntile.h != typeh) {//resize tile
-    let tempw = typeh*ntile.w/ntile.h;
+    let tempw = floor(typeh*ntile.w/ntile.h);
     ntile.w = tempw;
     ntile.h = typeh;//+2?fix gaps
   }
@@ -677,6 +677,8 @@ class Tile {
     g.image(this.img, -0.5*s*this.w, -0.5*s*this.h, s*this.w, s*this.h+2);
     g.pop();
     */
+
+    /*
    let curw = this.w;
    let curh = this.h;
    let domod = false;
@@ -704,10 +706,46 @@ class Tile {
     g.push();
     
     g.translate(-0.5*s*curw, -0.5*s*curh);
-    g.image(this.img, 0, 0, s*curw, s*curh+1);
+    //g.image(this.img, 0, 0, s*curw, s*curh+2);
+    g.image(this.img, 0, 0, s*curw, s*curh, 0, 0, this.img.width, this.img.height, COVER);
     g.pop();
     g.pop();
     //g.pop();
+    */
+    let curw = this.w;
+    let curh = this.h;
+    let domod = false;
+    if (this.sideways) {//need to modify w and h so stays same lineheight
+     let mod = this.h/this.w;
+     curw*=mod;
+     curh*=mod;
+     domod = true;
+    }
+     g.push();
+    
+     g.translate(s*this.x, s*this.y-1);
+     
+    g.imageMode(CENTER);
+
+    if (!domod) g.translate(floor(s*0.5*curw), floor(s*0.5*curh));
+     else g.translate(floor(s*0.5*curh), floor(s*0.5*curw));
+
+     
+     g.angleMode(DEGREES);
+     g.rotate(this.angle);
+     
+     if (this.fliph) g.scale(-1, 1);
+     if (this.flipv) g.scale(1, -1);
+     
+     g.push();
+     
+     //g.image(this.img, 0, 0, s*curw, s*curh, 0, 0, this.img.width, this.img.height, COVER);
+     g.image(this.img, 0, 0, s*curw, s*curh+3);
+     g.pop();
+     g.pop();
+    //console.log("rendered w"+s*curw+" h"+s*curh+2);
+
+    g.imageMode(CORNERS);
   }
 
   fliphoriz() {
