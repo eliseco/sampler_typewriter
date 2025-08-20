@@ -1,8 +1,8 @@
 
 let img;
 let typeh  = 100;
-let pagew = 1000; //500x800 for website; 1000x1200 for desktop
-let pageh = 1200;//1000;
+let pagew = 500; //500x800 for website; 1000x1200 for desktop
+let pageh = 800;//1000;
 let leftedge = pagew+15;
 let typex = 0;
 let topedge = typey = 20;
@@ -13,11 +13,11 @@ let renderscale = 4;//render canvas is 4x display dimensions
 let renderg;
 
 let mintypeh = 30;
-let maxtypeh = 500;
+let maxtypeh = 1000;
 
 //composition area
-let panelw = 2100;//1100; //1100x1600 for website; 2100x3700 for big monitor
-let panelh = 3600;//1600;//make sure this is bigger than pageh
+let panelw = 2100;//2100;//1100; //1100x1600 for website; 2100x3700 for big monitor
+let panelh = 3600;//3600;//1600;//make sure this is bigger than pageh
 let centerx; 
 let lines = [];//this will be array of arrays
 let linewidths = [];//keep track of line widths, for centering
@@ -34,6 +34,8 @@ let destw = 0;
 let input;//file upload input
 let checkbox;//checkbox for centered mode
 let slider;//slider for tile spacing - only available on a clear canvas
+let aspectcheckbox;//checkbox for fixed aspect ratio
+let aspectRatio = NaN;
 
 let images = [];
 
@@ -172,6 +174,13 @@ function setup() {
   let loadkbutton = createFileInput(handleKeyboardImage, true);
   loadkbutton.position(160+100, 30+150+pageh+180);
   
+  aspectcheckbox = createCheckbox(' fixed aspect ratio');
+  aspectcheckbox.position(160, 30+150+pageh+240);
+  aspectcheckbox.mouseClicked(() => {
+    console.log("aspect checkbox clicked");
+    //rendercanvas();
+  });
+
 
   describe('An interactive tool that displays an image on the left, and blank canvas on the right. Selecting portions of the image assembles them as tiles on the right.');
   
@@ -224,7 +233,8 @@ function draw() {
 
   text('source: '+sourcew+" x "+sourceh, 10, 150+pageh);
   text('destination: '+destw+" x "+desth, 10, 150+pageh+15);
-  text('aspect ratio: '+Number(sourcew/sourceh).toFixed(3), 10, 150+pageh+30);
+  //text('aspect ratio: '+Number(sourcew/sourceh).toFixed(3), 10, 150+pageh+30);
+  text('aspect ratio: '+Number(aspectRatio).toFixed(3), 10, 150+pageh+30);
   fill(0, 0, 0);
   text('type height: '+typeh, 10, 150+pageh+45);//display bank number
   text('KEY BANK: '+curbank, 10, 150+pageh+60);//display bank number
@@ -340,6 +350,14 @@ function mouseDragged() {
     return;
   }
 
+  if (aspectcheckbox.checked() && !isNaN(aspectRatio)) {
+    // Adjust width based on mouse position
+    let cheight = abs(curx-startx) / aspectRatio;
+    if (cury<startx) cury = starty-cheight;
+    else cury = starty+cheight;
+  
+  }
+
   let newx = min(curx, startx);
   let newy = min(cury, starty);
   let neww = abs(curx-startx);
@@ -416,6 +434,7 @@ function mouseReleased() {
   dragging = false;
 
   lasttile = newtile;
+  aspectRatio = sourcew/sourceh;
   
 }
 
