@@ -51,8 +51,9 @@ let curpage = -1;
 
 //let customlist = ['miranda/pinenegative.jpeg', 'miranda/pinepositive.jpeg'];//miranda
 let customlist = [];
-let imglist = ['cosa_text2.jpg', 'pines.jpg', 'tiberisland.jpg', 
-'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'viappia1.jpg', 'DSC00121.JPG', 'domusaurea1.jpg', 'domusaurea2.jpg', 'pantheon1.jpg'];
+//let imglist = ['cosa_text2.jpg', 'pines.jpg', 'tiberisland.jpg', 
+//'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'viappia1.jpg', 'DSC00121.JPG', 'domusaurea1.jpg', 'domusaurea2.jpg', 'pantheon1.jpg'];
+let imglist = ['pines.jpg', 'colosseum1.jpg'];
 let pageimgs = [];
 let testpage;
 
