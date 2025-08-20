@@ -159,7 +159,8 @@ function setup() {
 
   // Use the button to change the background color.
   button.mousePressed(() => {
-    renderg.save();
+    //renderg.save();
+    saveCanvas(renderg, "spolia", "jpg");
   });
 
   let kbutton = createButton('saveKeyboard');
@@ -658,7 +659,7 @@ function keyReleased() {
 function savekeyboard() {
   for (let i=0;i<26;i++) {
     if (saves[curbank][i]!=0) {
-      let filename = String.fromCharCode(i+65)+".jpg";
+      let filename = String.fromCharCode(i+65)+".png";
       console.log("saving "+filename);
       save(saves[curbank][i].img, filename);
     }
