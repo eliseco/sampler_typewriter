@@ -190,7 +190,9 @@ function setup() {
   heightinput = createInput();
   heightinput.position(160, 30+150+pageh+260);
 
-
+  widthinput.hide();
+  heightinput.hide();
+  
   describe('An interactive tool that displays an image on the left, and blank canvas on the right. Selecting portions of the image assembles them as tiles on the right.');
   
   for (let i=0;i<imglist.length;i++) {
