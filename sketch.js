@@ -37,6 +37,9 @@ let slider;//slider for tile spacing - only available on a clear canvas
 let aspectcheckbox;//checkbox for fixed aspect ratio
 let aspectRatio = NaN;
 
+let widthinput;//text field for aspect ratio width
+let heightinput;//text field for aspect ratio height
+
 let images = [];
 
 let spacing = 3;
@@ -175,11 +178,17 @@ function setup() {
   loadkbutton.position(160+100, 30+150+pageh+180);
   
   aspectcheckbox = createCheckbox(' fixed aspect ratio');
-  aspectcheckbox.position(160, 30+150+pageh+240);
+  aspectcheckbox.position(160, 30+150+pageh+220);
   aspectcheckbox.mouseClicked(() => {
     console.log("aspect checkbox clicked");
     //rendercanvas();
   });
+
+  widthinput = createInput();
+  widthinput.position(160, 30+150+pageh+240);
+
+  heightinput = createInput();
+  heightinput.position(160, 30+150+pageh+260);
 
 
   describe('An interactive tool that displays an image on the left, and blank canvas on the right. Selecting portions of the image assembles them as tiles on the right.');
@@ -350,13 +359,26 @@ function mouseDragged() {
     return;
   }
 
-  if (aspectcheckbox.checked() && !isNaN(aspectRatio)) {
-    // Adjust width based on mouse position
-    let cheight = abs(curx-startx) / aspectRatio;
-    if (cury<startx) cury = starty-cheight;
-    else cury = starty+cheight;
+  
+  if (aspectcheckbox.checked()) {
+    let thisaspect = aspectRatio;
+    let checkw = float(widthinput.value()); //use user-entered numbers
+    if (!isNaN(checkw)) {
+      let checkh = float(heightinput.value());
+      if (!isNaN(checkh)) {
+        thisaspect = checkw/checkh;
+        console.log("user-input aspect ratio: "+thisaspect+", width "+checkw+", height "+checkh);
+      }
+    }
+    if (!isNaN(thisaspect) && thisaspect!=0) {
+      // Adjust width based on mouse position
+      let cheight = abs(curx-startx) / aspectRatio;
+      if (cury<startx) cury = starty-cheight;
+      else cury = starty+cheight;
+    }
   
   }
+  
 
   let newx = min(curx, startx);
   let newy = min(cury, starty);
@@ -392,6 +414,7 @@ function mouseDragged() {
   sourceh = floor(sourceh);
   destw = floor(destw);
   desth = floor(desth);
+  if (!aspectcheckbox.checked()) aspectRatio = sourcew/sourceh;
   
 }
 
@@ -434,7 +457,7 @@ function mouseReleased() {
   dragging = false;
 
   lasttile = newtile;
-  aspectRatio = sourcew/sourceh;
+  
   
 }
 
@@ -632,7 +655,7 @@ function keyReleased() {
 function savekeyboard() {
   for (let i=0;i<26;i++) {
     if (saves[curbank][i]!=0) {
-      let filename = String.fromCharCode(i+65)+".png";
+      let filename = String.fromCharCode(i+65)+".jpg";
       console.log("saving "+filename);
       save(saves[curbank][i].img, filename);
     }
