@@ -293,7 +293,7 @@ function draw() {
   push();
  translate(leftedge, 0);
   //display cursor
-  if (checkbox.checked()) translate((panelw-linewidths[curline])/2, 0);
+  if (checkbox.checked()) translate(Math.round((panelw-linewidths[curline])/2), 0);
   line(typex, typey, typex, typey+typeh);
   if (typex == 0) {
     drawcursorhandle();
@@ -337,7 +337,7 @@ function checkcursorhandle() {
   //console.log("mouseX "+mouseX);
   if (typex!=0) return false;
   let offset = leftedge;//0;
-  if (checkbox.checked()) offset += (panelw-linewidths[curline])/2;
+  if (checkbox.checked()) offset += Math.round((panelw-linewidths[curline])/2);
   if (mouseX>offset+typex-handlew && mouseX<offset+typex+handlew && mouseY>typeh+typey && mouseY<typeh+typey+handlew) return true;
   else return false;
 }
@@ -481,7 +481,7 @@ function mouseReleased() {
 
 function typetile(ntile) {
   if (ntile.h != typeh) {//resize tile
-    let tempw = floor(typeh*ntile.w/ntile.h);
+    let tempw = Math.round(typeh*ntile.w/ntile.h);
     ntile.w = tempw;
     ntile.h = typeh;//+2?fix gaps
   }
@@ -772,46 +772,54 @@ class Tile {
     g.pop();
     //g.pop();
     */
-       let curw = this.w;
-    let curh = this.h;
+   
+    // destination (unrotated) size at the line height
+    let destW = !this.sideways ? this.w : (this.h * this.h / this.w);
+    let destH = this.h;
 
-    // If sideways, keep line height; avoid float drift
-    if (this.sideways) {
-      const scale = this.h / this.w;
-      curw = Math.round(this.w * scale);
-      curh = Math.round(this.h * scale);
-    }
+    // round sizes once at draw-time
+    const dw = Math.round(s * destW);
+    const dh = Math.round(s * destH);
 
-    // Round all pixel work once, at draw time
-    const dx = Math.round(s * this.x);
-    const dy = Math.round(s * this.y);
-    const dw = Math.round(s * curw);
-    const dh = Math.round(s * curh);
+    // integer anchor position (top-left of the axis-aligned bbox)
+    const ax = Math.round(s * this.x);
+    const ay = Math.round(s * this.y);
+
+    const angle = ((this.angle % 360) + 360) % 360; // normalize to [0,360)
+    const rad = angle * Math.PI / 180;
+    const c = Math.cos(rad), ss = Math.sin(rad);
+
+    // axis-aligned bounding box of the rotated rectangle
+    const bboxW = Math.round(Math.abs(dw * c) + Math.abs(dh * ss));
+    const bboxH = Math.round(Math.abs(dw * ss) + Math.abs(dh * c));
 
     g.push();
 
-    // Fast path: no rotation/flips -> corner draw, no center math
-    if ((this.angle % 360 === 0) && !this.fliph && !this.flipv) {
+    // Fast path: no rotation/flips -> draw at CORNER (avoids center math)
+    if (angle === 0 && !this.fliph && !this.flipv) {
       g.imageMode(CORNER);
-      g.translate(dx, dy);
-      g.image(this.img, 0, 0, dw, dh);
+      g.image(this.img, ax, ay, dw, dh);
       g.pop();
-      g.imageMode(CORNERS);
       return;
     }
 
-    // Rotations/flips: center at integer pixels
-    g.imageMode(CENTER);
-    g.translate(dx + Math.round(dw / 2), dy + Math.round(dh / 2));
+    // Place context at the center of the AABB so that top-left aligns to (ax, ay)
+    const cx = ax + Math.round(bboxW / 2);
+    const cy = ay + Math.round(bboxH / 2);
+
+    g.translate(cx, cy);
     g.angleMode(DEGREES);
-    g.rotate(this.angle);
+    g.rotate(angle);
+
+    // handle flips in the rotated frame
     if (this.fliph) g.scale(-1, 1);
     if (this.flipv) g.scale(1, -1);
 
+    // draw centered with integer sizes
+    g.imageMode(CENTER);
     g.image(this.img, 0, 0, dw, dh);
 
     g.pop();
-    g.imageMode(CORNERS);
 
   }
 
