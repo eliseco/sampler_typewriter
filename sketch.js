@@ -1,15 +1,15 @@
 
 let img;
 let typeh  = 100;
-let pagew = 500; //500x800 for website; 1000x1200 for desktop
-let pageh = 800;//1000;
+let pagew = 1000; //500x800 for website; 1000x1200 for desktop
+let pageh = 1200;//1000;
 let leftedge = pagew+15;
 let typex = 0;
 let topedge = typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
 
-let renderscale = 4;//render canvas is 4x display dimensions
+let renderscale = 2;//4;//render canvas is 4x display dimensions
 let renderg;
 
 let mintypeh = 30;
@@ -53,7 +53,7 @@ let curpage = -1;
 let customlist = [];
 //let imglist = ['cosa_text2.jpg', 'pines.jpg', 'tiberisland.jpg', 
 //'colosseum1.jpg', 'forum1.jpg', 'forum2.jpg', 'viappia1.jpg', 'DSC00121.JPG', 'domusaurea1.jpg', 'domusaurea2.jpg', 'pantheon1.jpg'];
-let imglist = ['pines.jpg', 'colosseum1.jpg'];
+let imglist = ['forum1.jpg', 'pines.jpg'];
 let pageimgs = [];
 let testpage;
 
@@ -160,7 +160,10 @@ function setup() {
   // Use the button to change the background color.
   button.mousePressed(() => {
     //renderg.save();
-    saveCanvas(renderg, "spolia", "jpg");
+    //saveCanvas(renderg, "spolia", "jpg");
+    rendercanvas();
+    save(renderg, 'spolia.jpg');
+
   });
 
   let kbutton = createButton('saveKeyboard');
