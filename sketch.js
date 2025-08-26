@@ -480,11 +480,11 @@ function mouseReleased() {
 }
 
 function typetile(ntile) {
-  if (ntile.h != typeh) {//resize tile
-    let tempw = Math.round(typeh*ntile.w/ntile.h);
-    ntile.w = tempw;
-    ntile.h = typeh;//+2?fix gaps
-  }
+  if (ntile.h !== typeh) { // resize tile to line height using *image* aspect ratio
+   const a = ntile.img.width / ntile.img.height; // image aspect
+   ntile.h = typeh;
+   ntile.w = Math.round(typeh * a);              // logical width for 0°/180°
+ }
   tiles.push(ntile);
   lines[curline].push(ntile);
   ntile.x = typex;
@@ -707,6 +707,27 @@ class Tile {
     this.sideways = false;
   }
 
+  getAspect() {
+  // width / height of the cropped source image
+  return this.img.width / this.img.height;
+  }
+
+  isSideways() {
+    const a = ((this.angle % 360) + 360) % 360;
+    return (a % 180) === 90;
+  }
+
+  /**
+   * Logical horizontal step used by layout (cursor advance) at 1×.
+   * This is the AABB width of the tile when placed on a line whose height is this.h (=typeh).
+   */
+  advance() {
+    const a = this.getAspect();
+    // For 0°/180°, width = typeh * aspect  (we already store that as this.w)
+    // For 90°/270°, AABB width = typeh / aspect
+    return this.isSideways() ? Math.round(this.h / a) : this.w;
+  }
+
   display() {
     //image(this.img, this.x, this.y, this.w, this.h);
     push();
@@ -773,54 +794,55 @@ class Tile {
     //g.pop();
     */
    
-    // destination (unrotated) size at the line height
-    let destW = !this.sideways ? this.w : (this.h * this.h / this.w);
-    let destH = this.h;
-
-    // round sizes once at draw-time
-    const dw = Math.round(s * destW);
-    const dh = Math.round(s * destH);
-
-    // integer anchor position (top-left of the axis-aligned bbox)
+    // Integer anchor (AABB top-left)
     const ax = Math.round(s * this.x);
     const ay = Math.round(s * this.y);
 
-    const angle = ((this.angle % 360) + 360) % 360; // normalize to [0,360)
-    const rad = angle * Math.PI / 180;
-    const c = Math.cos(rad), ss = Math.sin(rad);
+    // Normalize angle and detect sideways
+    const ang = ((this.angle % 360) + 360) % 360;
+    const sideways = (ang % 180) === 90;
 
-    // axis-aligned bounding box of the rotated rectangle
-    const bboxW = Math.round(Math.abs(dw * c) + Math.abs(dh * ss));
-    const bboxH = Math.round(Math.abs(dw * ss) + Math.abs(dh * c));
+    // Image aspect
+    const a = this.img.width / this.img.height;   // >1 = wider than tall
+
+    // Choose pre-rotation draw size so final AABB height == this.h (line height)
+    // 0°/180°:  AABB height = dh  -> set dh = typeh, dw = typeh * a
+    // 90°/270°: AABB height = dw  -> set dw = typeh, dh = typeh / a
+    let dw_px, dh_px;
+    if (!sideways) {
+      dw_px = Math.round(s * (this.h * a));
+      dh_px = Math.round(s * this.h);
+    } else {
+      dw_px = Math.round(s * this.h);
+      dh_px = Math.round(s * (this.h / a));
+    }
+
+    // AABB size for anchoring
+    const rad = ang * Math.PI / 180;
+    const c = Math.cos(rad), sn = Math.sin(rad);
+    const bboxW = Math.round(Math.abs(dw_px * c) + Math.abs(dh_px * sn));
+    const bboxH = Math.round(Math.abs(dw_px * sn) + Math.abs(dh_px * c));
+
+    // Center so that AABB top-left is exactly (ax, ay)
+    const cx = ax + Math.floor(bboxW / 2);
+    const cy = ay + Math.floor(bboxH / 2);
 
     g.push();
 
-    // Fast path: no rotation/flips -> draw at CORNER (avoids center math)
-    if (angle === 0 && !this.fliph && !this.flipv) {
+    if (ang === 0 && !this.fliph && !this.flipv) {
       g.imageMode(CORNER);
-      g.image(this.img, ax, ay, dw, dh);
+      g.image(this.img, ax, ay, dw_px, dh_px);
       g.pop();
       return;
     }
 
-    // Place context at the center of the AABB so that top-left aligns to (ax, ay)
-    const cx = ax + Math.round(bboxW / 2);
-    const cy = ay + Math.round(bboxH / 2);
-
     g.translate(cx, cy);
-    g.angleMode(DEGREES);
-    g.rotate(angle);
-
-    // handle flips in the rotated frame
-    if (this.fliph) g.scale(-1, 1);
-    if (this.flipv) g.scale(1, -1);
-
-    // draw centered with integer sizes
+    g.rotate(rad);
+    if (this.fliph || this.flipv) g.scale(this.fliph ? -1 : 1, this.flipv ? -1 : 1);
     g.imageMode(CENTER);
-    g.image(this.img, 0, 0, dw, dh);
+    g.image(this.img, 0, 0, dw_px, dh_px);
 
     g.pop();
-
   }
 
   fliphoriz() {
