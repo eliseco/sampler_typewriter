@@ -140,6 +140,16 @@ function setup() {
   createCanvas(pagew+panelw+15, panelh);
   renderg = createGraphics(panelw*renderscale, panelh*renderscale);
 
+  // === crisp pixels, no AA seams ===
+  pixelDensity(1);
+  noSmooth();
+  drawingContext.imageSmoothingEnabled = false;
+
+  renderg.pixelDensity(1);
+  renderg.noSmooth();
+  renderg.drawingContext.imageSmoothingEnabled = false;
+  //
+
   input = createFileInput(handleImage, true);
   input.position(0, 150+pageh+120);
 
@@ -260,7 +270,7 @@ function draw() {
  translate(leftedge, 0);
  for (let i=0;i<lines.length;i++) {
   push();
-  if (checkbox.checked()) translate((panelw-linewidths[i])/2, 0);
+  if (checkbox.checked()) translate(Math.round((panelw-linewidths[i])/2), 0);
   for (let j=0;j<lines[i].length;j++) {
     lines[i][j].display(); 
   }
@@ -305,7 +315,7 @@ function rendercanvas() {
   renderg.background(255);
   for (let i=0;i<lines.length;i++) {
     renderg.push();
-    if (checkbox.checked()) renderg.translate(renderscale*(panelw-linewidths[i])/2, 0);
+    if (checkbox.checked()) renderg.translate(Math.round(renderscale*(panelw-linewidths[i])/2), 0);
     for (let j=0;j<lines[i].length;j++) {
       //lines[i][j].display(); 
       lines[i][j].render(renderg, renderscale);
@@ -437,12 +447,13 @@ function mouseReleased() {
     dragging = false;
     return;
   }
-  let newx = floor(min(curx, startx));
-  let newy = floor(min(cury, starty));
-  let neww = floor(abs(curx-startx));
-  let newh = ceil(abs(cury-starty));//was floor; trying to fix gaps
-  
-  let tempw = floor(typeh*neww/newh);
+  let newx = Math.round(min(curx, startx));
+  let newy = Math.round(min(cury, starty));
+  let neww = Math.round(abs(curx - startx));
+  let newh = Math.round(abs(cury - starty));
+
+  let tempw = Math.round(typeh * neww / newh);
+
  
 
   
@@ -687,9 +698,9 @@ class Tile {
   constructor(i, x, y, w, h) {
     this.img = i;
     this.x = x;
-    this.y = y-1;
+    this.y = y;
     this.w = w;
-    this.h = h+2;
+    this.h = h;
     this.fliph = false;
     this.flipv = false;
     this.angle = 0;
@@ -761,40 +772,47 @@ class Tile {
     g.pop();
     //g.pop();
     */
-    let curw = this.w;
+       let curw = this.w;
     let curh = this.h;
-    let domod = false;
-    if (this.sideways) {//need to modify w and h so stays same lineheight
-     let mod = this.h/this.w;
-     curw*=mod;
-     curh*=mod;
-     domod = true;
+
+    // If sideways, keep line height; avoid float drift
+    if (this.sideways) {
+      const scale = this.h / this.w;
+      curw = Math.round(this.w * scale);
+      curh = Math.round(this.h * scale);
     }
-     g.push();
-    
-     g.translate(s*this.x, s*this.y-1);
-     
+
+    // Round all pixel work once, at draw time
+    const dx = Math.round(s * this.x);
+    const dy = Math.round(s * this.y);
+    const dw = Math.round(s * curw);
+    const dh = Math.round(s * curh);
+
+    g.push();
+
+    // Fast path: no rotation/flips -> corner draw, no center math
+    if ((this.angle % 360 === 0) && !this.fliph && !this.flipv) {
+      g.imageMode(CORNER);
+      g.translate(dx, dy);
+      g.image(this.img, 0, 0, dw, dh);
+      g.pop();
+      g.imageMode(CORNERS);
+      return;
+    }
+
+    // Rotations/flips: center at integer pixels
     g.imageMode(CENTER);
+    g.translate(dx + Math.round(dw / 2), dy + Math.round(dh / 2));
+    g.angleMode(DEGREES);
+    g.rotate(this.angle);
+    if (this.fliph) g.scale(-1, 1);
+    if (this.flipv) g.scale(1, -1);
 
-    if (!domod) g.translate(floor(s*0.5*curw), floor(s*0.5*curh));
-     else g.translate(floor(s*0.5*curh), floor(s*0.5*curw));
+    g.image(this.img, 0, 0, dw, dh);
 
-     
-     g.angleMode(DEGREES);
-     g.rotate(this.angle);
-     
-     if (this.fliph) g.scale(-1, 1);
-     if (this.flipv) g.scale(1, -1);
-     
-     g.push();
-     
-     //g.image(this.img, 0, 0, s*curw, s*curh, 0, 0, this.img.width, this.img.height, COVER);
-     g.image(this.img, 0, 0, s*curw, s*curh+3);
-     g.pop();
-     g.pop();
-    //console.log("rendered w"+s*curw+" h"+s*curh+2);
-
+    g.pop();
     g.imageMode(CORNERS);
+
   }
 
   fliphoriz() {
