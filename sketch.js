@@ -143,11 +143,11 @@ function setup() {
   // === crisp pixels, no AA seams ===
   pixelDensity(1);
   noSmooth();
-  drawingContext.imageSmoothingEnabled = false;
+  //drawingContext.imageSmoothingEnabled = false;
 
   renderg.pixelDensity(1);
   renderg.noSmooth();
-  renderg.drawingContext.imageSmoothingEnabled = false;
+  //renderg.drawingContext.imageSmoothingEnabled = false;
   //
 
   input = createFileInput(handleImage, true);
