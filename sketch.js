@@ -9,7 +9,7 @@ let topedge = typey = 20;
 let startx, starty, curx, cury=0;
 let dragging = false;
 
-let renderscale = 2;//4;//render canvas is 4x display dimensions
+let renderscale = 4;//render canvas is 4x display dimensions
 let renderg;
 
 let mintypeh = 30;
