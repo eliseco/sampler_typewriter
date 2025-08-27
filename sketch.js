@@ -386,8 +386,8 @@ function mouseDragged() {
     }
     if (!isNaN(thisaspect) && thisaspect!=0) {
       // Adjust width based on mouse position
-      let cheight = abs(curx-startx) / aspectRatio;
-      if (cury<startx) cury = starty-cheight;
+      let cheight = abs(curx-startx) / thisaspect;
+      if (cury<starty) cury = starty-cheight;
       else cury = starty+cheight;
     }
   
