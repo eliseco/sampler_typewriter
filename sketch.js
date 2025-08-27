@@ -487,8 +487,8 @@ function typetile(ntile) {
  }
   tiles.push(ntile);
   lines[curline].push(ntile);
-  ntile.x = typex;
-  ntile.y = typey;//-1?fix gaps
+  ntile.x = Math.round(typex);
+  ntile.y = Math.round(typey);//-1?fix gaps
   lasttile = ntile;
 
 
@@ -794,55 +794,56 @@ class Tile {
     //g.pop();
     */
    
-    // Integer anchor (AABB top-left)
-    const ax = Math.round(s * this.x);
-    const ay = Math.round(s * this.y);
+    // s must be an integer (e.g., 1 for preview, 5/10 for export)
+    // If it isn't, you will reintroduce seams.
+    // Ensure renderscale is an integer.
 
-    // Normalize angle and detect sideways
     const ang = ((this.angle % 360) + 360) % 360;
     const sideways = (ang % 180) === 90;
 
-    // Image aspect
-    const a = this.img.width / this.img.height;   // >1 = wider than tall
+    // 1× layout metrics (integers)
+    const W1 = this.getwidth(); // layout width at typeh
+    const H1 = this.h;          // == typeh
 
-    // Choose pre-rotation draw size so final AABB height == this.h (line height)
-    // 0°/180°:  AABB height = dh  -> set dh = typeh, dw = typeh * a
-    // 90°/270°: AABB height = dw  -> set dw = typeh, dh = typeh / a
-    let dw_px, dh_px;
-    if (!sideways) {
-      dw_px = Math.round(s * (this.h * a));
-      dh_px = Math.round(s * this.h);
-    } else {
-      dw_px = Math.round(s * this.h);
-      dh_px = Math.round(s * (this.h / a));
-    }
+    // Scale positions from 1× integers -> exact integers at s×
+    const ax = s * this.x;
+    const ay = s * this.y;
 
-    // AABB size for anchoring
+    // Choose PRE-rotation draw size so that the AABB matches layout×s.
+    // 0°/180° : AABB (w,h) = (W1*s, H1*s)  -> preW = W1*s, preH = H1*s
+    // 90°/270°: AABB (w,h) = (W1*s, H1*s)  -> but since AABB of rotated rect swaps,
+    //                                        preW = H1*s, preH = W1*s
+    const dw_px = sideways ? (s * H1) : (s * W1);
+    const dh_px = sideways ? (s * W1) : (s * H1);
+
+    // Compute rotated AABB size for anchoring top-left exactly at (ax, ay)
     const rad = ang * Math.PI / 180;
     const c = Math.cos(rad), sn = Math.sin(rad);
-    const bboxW = Math.round(Math.abs(dw_px * c) + Math.abs(dh_px * sn));
-    const bboxH = Math.round(Math.abs(dw_px * sn) + Math.abs(dh_px * c));
+    const bboxW = Math.abs(dw_px * c) + Math.abs(dh_px * sn);
+    const bboxH = Math.abs(dw_px * sn) + Math.abs(dh_px * c);
 
-    // Center so that AABB top-left is exactly (ax, ay)
-    const cx = ax + Math.floor(bboxW / 2);
-    const cy = ay + Math.floor(bboxH / 2);
+    // center so that the AABB's top-left equals (ax, ay)
+    const cx = ax + Math.round(bboxW / 2);
+    const cy = ay + Math.round(bboxH / 2);
 
-    g.push();
+    const ctx = g; // alias
+    ctx.push();
 
     if (ang === 0 && !this.fliph && !this.flipv) {
-      g.imageMode(CORNER);
-      g.image(this.img, ax, ay, dw_px, dh_px);
-      g.pop();
+      // Fast path: axis-aligned -> draw from top-left
+      ctx.imageMode(CORNER);
+      ctx.image(this.img, Math.round(ax), Math.round(ay), dw_px, dh_px);
+      ctx.pop();
       return;
     }
 
-    g.translate(cx, cy);
-    g.rotate(rad);
-    if (this.fliph || this.flipv) g.scale(this.fliph ? -1 : 1, this.flipv ? -1 : 1);
-    g.imageMode(CENTER);
-    g.image(this.img, 0, 0, dw_px, dh_px);
+    ctx.translate(cx, cy);
+    ctx.rotate(rad);
+    if (this.fliph || this.flipv) ctx.scale(this.fliph ? -1 : 1, this.flipv ? -1 : 1);
+    ctx.imageMode(CENTER);
+    ctx.image(this.img, 0, 0, dw_px, dh_px);
 
-    g.pop();
+    ctx.pop();
   }
 
   fliphoriz() {
@@ -865,8 +866,14 @@ class Tile {
   }
 
   getwidth() {
+    /*
     if (!this.sideways) return this.w;
     else return (this.h*this.h/this.w);
+    */
+    const a = this.img.width / this.img.height;      // source aspect
+    const ang = ((this.angle % 360) + 360) % 360;
+    const sideways = (ang % 180) === 90;
+    return sideways ? Math.round(this.h / a) : Math.round(this.h * a);
   }
 }
 
