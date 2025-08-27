@@ -483,7 +483,8 @@ function typetile(ntile) {
   if (ntile.h !== typeh) { // resize tile to line height using *image* aspect ratio
    const a = ntile.img.width / ntile.img.height; // image aspect
    ntile.h = typeh;
-   ntile.w = Math.round(typeh * a);              // logical width for 0°/180°
+   //ntile.w = Math.round(typeh * a);              // logical width for 0°/180°
+   ntile.w = ntile.getwidth();
  }
   tiles.push(ntile);
   lines[curline].push(ntile);
@@ -501,8 +502,8 @@ function typetile(ntile) {
 function updatecursor() {
   
   calculateLineWidth();
-  console.log("update cursor, typex "+linewidths[curline]);
-  typex = linewidths[curline];
+  //console.log("update cursor, typex "+linewidths[curline]);
+  typex = Math.round(linewidths[curline]);
 }
 
 function keyPressed() {
@@ -748,52 +749,6 @@ class Tile {
 
   render(g, s) {//graphics context, scale
 
-    /* pre-rotate version
-    g.push();
-    g.translate(s*this.x, s*this.y-1);
-    //g.translate(s*0.5*this.w, s*0.5*this.h);
-    g.translate(s*0.5*this.w, s*0.5*this.h);//fix gaps
-    if (this.fliph) g.scale(-1, 1);
-    if (this.flipv) g.scale(1, -1);
-    g.image(this.img, -0.5*s*this.w, -0.5*s*this.h, s*this.w, s*this.h+2);
-    g.pop();
-    */
-
-    /*
-   let curw = this.w;
-   let curh = this.h;
-   let domod = false;
-   if (this.sideways) {//need to modify w and h so stays same lineheight
-    let mod = this.h/this.w;
-    curw*=mod;
-    curh*=mod;
-    domod = true;
-   }
-    g.push();
-   
-    g.translate(s*this.x, s*this.y-1);
-    
-
-    
-    if (!domod) g.translate(s*0.5*curw, s*0.5*curh);
-    else g.translate(s*0.5*curh, s*0.5*curw);
-    //g.push();
-    g.angleMode(DEGREES);
-    g.rotate(this.angle);
-    
-    if (this.fliph) g.scale(-1, 1);
-    if (this.flipv) g.scale(1, -1);
-    
-    g.push();
-    
-    g.translate(-0.5*s*curw, -0.5*s*curh);
-    //g.image(this.img, 0, 0, s*curw, s*curh+2);
-    g.image(this.img, 0, 0, s*curw, s*curh, 0, 0, this.img.width, this.img.height, COVER);
-    g.pop();
-    g.pop();
-    //g.pop();
-    */
-   
     // s must be an integer (e.g., 1 for preview, 5/10 for export)
     // If it isn't, you will reintroduce seams.
     // Ensure renderscale is an integer.
@@ -806,15 +761,15 @@ class Tile {
     const H1 = this.h;          // == typeh
 
     // Scale positions from 1× integers -> exact integers at s×
-    const ax = s * this.x;
-    const ay = s * this.y;
+    const ax = Math.round(s * this.x);
+    const ay = Math.round(s * this.y);
 
     // Choose PRE-rotation draw size so that the AABB matches layout×s.
     // 0°/180° : AABB (w,h) = (W1*s, H1*s)  -> preW = W1*s, preH = H1*s
     // 90°/270°: AABB (w,h) = (W1*s, H1*s)  -> but since AABB of rotated rect swaps,
     //                                        preW = H1*s, preH = W1*s
-    const dw_px = sideways ? (s * H1) : (s * W1);
-    const dh_px = sideways ? (s * W1) : (s * H1);
+    const dw_px = Math.round(sideways ? (s * H1) : (s * W1));
+    const dh_px = Math.round(sideways ? (s * W1) : (s * H1));
 
     // Compute rotated AABB size for anchoring top-left exactly at (ax, ay)
     const rad = ang * Math.PI / 180;
@@ -836,7 +791,13 @@ class Tile {
       ctx.pop();
       return;
     }
-
+/*
+    // For rotated/flipped tiles, round the center too
+    bboxW = Math.abs(dw_px * c) + Math.abs(dh_px * sn);
+    bboxH = Math.abs(dw_px * sn) + Math.abs(dh_px * c);
+    cx = Math.round(ax + bboxW / 2);
+    cy = Math.round(ay + bboxH / 2);
+*/    
     ctx.translate(cx, cy);
     ctx.rotate(rad);
     if (this.fliph || this.flipv) ctx.scale(this.fliph ? -1 : 1, this.flipv ? -1 : 1);
@@ -866,14 +827,17 @@ class Tile {
   }
 
   getwidth() {
-    /*
-    if (!this.sideways) return this.w;
-    else return (this.h*this.h/this.w);
-    */
-    const a = this.img.width / this.img.height;      // source aspect
+    const imgW = this.img.width;
+    const imgH = this.img.height;
     const ang = ((this.angle % 360) + 360) % 360;
     const sideways = (ang % 180) === 90;
-    return sideways ? Math.round(this.h / a) : Math.round(this.h * a);
+    
+    // Use integer math when possible to reduce floating-point errors
+    if (sideways) {
+      return Math.round((this.h * imgH) / imgW);
+    } else {
+      return Math.round((this.h * imgW) / imgH);
+    }
   }
 }
 
