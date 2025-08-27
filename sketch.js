@@ -197,13 +197,21 @@ function setup() {
   aspectcheckbox.mouseClicked(() => {
     console.log("aspect checkbox clicked");
     //rendercanvas();
+    if (aspectcheckbox.checked()) {
+      widthinput.show();
+      heightinput.show();
+    }
+    else {
+      widthinput.hide();
+      heightinput.hide();
+    }
   });
 
   widthinput = createInput();
-  widthinput.position(160, 30+150+pageh+240);
+  widthinput.position(200, 30+150+pageh+240);
 
   heightinput = createInput();
-  heightinput.position(160, 30+150+pageh+260);
+  heightinput.position(200, 30+150+pageh+260);
 
   widthinput.hide();
   heightinput.hide();
@@ -265,6 +273,11 @@ function draw() {
   text('type height: '+typeh, 10, 150+pageh+45);//display bank number
   text('KEY BANK: '+curbank, 10, 150+pageh+60);//display bank number
 
+  if (aspectcheckbox.checked()) {
+
+    text('width', 160, 150+pageh+35);
+    text('height', 160, 150+pageh+55);
+  }
 
  push();
  translate(leftedge, 0);
@@ -429,6 +442,7 @@ function mouseDragged() {
   destw = floor(destw);
   desth = floor(desth);
   if (!aspectcheckbox.checked()) aspectRatio = sourcew/sourceh;
+  //aspectRatio = sourcew/sourceh;
   
 }
 
@@ -503,7 +517,21 @@ function updatecursor() {
   typex = Math.round(linewidths[curline]);
 }
 
+// Add this helper function to check if any input has focus
+function isInputFocused() {
+  return (widthinput.elt === document.activeElement || 
+          heightinput.elt === document.activeElement ||
+          document.activeElement.tagName === 'INPUT' ||
+          document.activeElement.tagName === 'TEXTAREA');
+}
+
 function keyPressed() {
+
+  // Skip tile typing if user is typing in an input field
+  if (isInputFocused()) {
+    return;
+  }
+
   console.log(keyCode);
   if (keyCode == 13) {//return
     typex = 0;
