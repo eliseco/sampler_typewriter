@@ -279,9 +279,6 @@ function draw() {
 }
  pop();
 
-
-  //rendercanvas();//don't do this every frame
-
  
  image(renderg, leftedge, 0, panelw, panelh);
   stroke(0);
@@ -511,7 +508,7 @@ function keyPressed() {
   if (keyCode == 13) {//return
     typex = 0;
     //typey+=typeh+spacing-1;//-1 to fix spaced lines, but makes it worse when scaled?
-    typey+=typeh+spacing;
+    typey = Math.round(typey+typeh+spacing);
     
     //make new line array
     lines.push(new Array());
@@ -787,7 +784,7 @@ class Tile {
     if (ang === 0 && !this.fliph && !this.flipv) {
       // Fast path: axis-aligned -> draw from top-left
       ctx.imageMode(CORNER);
-      ctx.image(this.img, Math.round(ax), Math.round(ay), dw_px, dh_px);
+      ctx.image(this.img, Math.round(ax), Math.round(ay), dw_px, dh_px+(2*s));
       ctx.pop();
       return;
     }
@@ -802,7 +799,7 @@ class Tile {
     ctx.rotate(rad);
     if (this.fliph || this.flipv) ctx.scale(this.fliph ? -1 : 1, this.flipv ? -1 : 1);
     ctx.imageMode(CENTER);
-    ctx.image(this.img, 0, 0, dw_px, dh_px);
+    ctx.image(this.img, 0, 0, dw_px, dh_px+(2*s));
 
     ctx.pop();
   }
